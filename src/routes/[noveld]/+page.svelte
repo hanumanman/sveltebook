@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+	const { novel, progress, user } = $derived(data);
 	const {
 		chapter_count,
 		id,
@@ -10,7 +11,7 @@
 		novel_genre,
 		novel_image_link,
 		novel_name
-	} = $derived(data);
+	} = $derived(novel);
 
 	const genres = $derived(novel_genre.split(','));
 </script>
@@ -34,7 +35,7 @@
 			</p>
 
 			<div class="mb-4 flex w-full flex-wrap gap-2">
-				{#each genres as genre}
+				{#each genres as genre, i (i)}
 					<span
 						class="inline-flex items-center rounded-full border border-violet-800 bg-gray-800 px-3 py-1 text-xs font-medium whitespace-nowrap text-violet-200 sm:text-sm"
 					>
@@ -56,6 +57,16 @@
 					{novel_description}
 				</p>
 			</div>
+			{#if progress?.last_chapter_number}
+				<div class="mt-6">
+					<a
+						href={`/${id}/${progress.last_chapter_number}`}
+						class="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-violet-800 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-200 hover:bg-violet-700 focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-gray-900 focus:outline-none"
+					>
+						Resume chapter {progress.last_chapter_number}: {progress?.last_chapter_name}
+					</a>
+				</div>
+			{/if}
 
 			<div class="mt-6">
 				<a

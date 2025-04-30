@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { preloadData } from '$app/navigation';
 	import { plainContentToParagraphs, scrollPage } from '$lib/utils';
 	import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-svelte';
 	import type { PageProps } from './$types';
-	import { preloadData } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 	const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data);
@@ -18,10 +19,21 @@
 		if (hasNextChapter) {
 			preloadData(`/${novel_id}/${nextChapter}`);
 		}
+		// Trigger submit form
+		const saveProgressBtn = document.getElementById('save-progress-btn');
+		if (saveProgressBtn) {
+			saveProgressBtn.click();
+		}
 	});
 </script>
 
 <div class="min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+	<form class="hidden" method="post" use:enhance>
+		<input type="text" name="lastChapterName" value={chapter_name} />
+		<input type="text" name="chapterNumber" value={chapter_number} />
+		<input type="text" name="chapterNumber" value={chapter_number} />
+		<button type="submit" id="save-progress-btn">Submit action</button>
+	</form>
 	<main class="mx-auto max-w-screen-lg px-4 py-6">
 		<!-- Back to Novel Link -->
 		<a
@@ -73,8 +85,8 @@
 
 		<!-- Chapter Content -->
 		<article class="prose prose-lg dark:prose-invert mb-12 max-w-none">
-			{#each paragraphs as paragraph}
-				<p>{@html paragraph}</p>
+			{#each paragraphs as paragraph, i (i)}
+				<p>{paragraph}</p>
 			{/each}
 		</article>
 
