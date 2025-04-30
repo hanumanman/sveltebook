@@ -1,38 +1,85 @@
-# sv
+# Sveltebook
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A modern novel reading platform built with SvelteKit.
 
-## Creating a project
+## Project Overview
 
-If you're seeing this, you've probably already done this step. Congrats!
+Sveltebook is a web application designed for reading novels online. It provides an intuitive interface for readers to discover, browse, and enjoy literature with features for user authentication, bookmarking, and tracking reading progress.
+
+## Features
+
+- User authentication and account management
+- Novel browsing and categorization
+- Reading progress tracking
+- Responsive design for desktop and mobile reading
+- Bookmarking and favorites system
+
+## Tech Stack
+
+- [SvelteKit](https://kit.svelte.dev/) - Full-stack web framework
+- [Svelte 5](https://svelte.dev/) - Component framework
+- [TailwindCSS 4](https://tailwindcss.com/) - Utility-first CSS framework
+- [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
+- [LibSQL](https://libsql.org/) - SQLite-compatible database
+- [Lucide](https://lucide.dev/) - Icon library
+- [Argon2](https://github.com/node-rs/node-rs/tree/main/packages/argon2) - Password hashing
+
+## Development
+
+### Prerequisites
+
+- Node.js (LTS version recommended)
+- bun
+
+### Getting Started
+
+1. Clone the repository
+
+   ```bash
+   git clone https://github.com/yourusername/sveltebook.git
+   cd sveltebook
+   ```
+
+2. Install dependencies
+
+   ```bash
+   bun install
+   ```
+
+3. Start the development server
+   ```bash
+   bun run dev
+   # or start the server and open the app in a new browser tab
+   bun run dev -- --open
+   ```
+
+### Database Management
+
+This project uses Drizzle ORM with LibSQL. The following commands are available:
 
 ```bash
-# create a new project in the current directory
-npx sv create
+# Push schema changes to the database
+bun run db:push
 
-# create a new project in my-app
-npx sv create my-app
+# Run migrations
+bun run db:migrate
+
+# Open Drizzle Studio to view/edit database
+bun run db:studio
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Building for Production
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+bun run build
 ```
 
-## Building
+You can preview the production build with `bun run preview`.
 
-To create a production version of your app:
+## Contributing
 
-```bash
-npm run build
-```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-You can preview the production build with `npm run preview`.
+## License
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+[MIT](LICENSE)
