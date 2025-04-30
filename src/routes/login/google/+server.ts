@@ -22,8 +22,6 @@ export async function GET(event: RequestEvent): Promise<Response> {
 		sameSite: 'lax'
 	});
 
-	const urlstring = url.toString();
-	console.log('TODO: Delete 🚀 ~ GET ~ urlstring:', urlstring);
 	return new Response(null, {
 		status: 302,
 		headers: {
