@@ -81,35 +81,37 @@
 		<!-- Bottom Chapter Navigation -->
 		<div class="mt-16 mb-12 flex flex-col gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
 			{#if hasNextChapter}
-				<button
-					class="grid w-full cursor-pointer place-items-center rounded-lg border border-gray-700 bg-gray-300 p-3 dark:border-gray-300"
-					><a
-						href="/{novel_id}/{nextChapter}"
-						class="text-gray-400 hover:text-gray-200 dark:text-gray-600 dark:hover:text-gray-900"
+				<a
+					href="/{novel_id}/{nextChapter}"
+					class="text-gray-400 hover:text-gray-200 dark:text-gray-600 dark:hover:text-gray-900"
+				>
+					<button
+						class="grid w-full cursor-pointer place-items-center rounded-lg border border-gray-700 bg-gray-300 p-3 dark:border-gray-300"
 					>
 						<div class="flex items-center gap-2">
 							<span>Next Chapter</span>
 							<ChevronRight size={20} />
 						</div>
-					</a></button
-				>
+					</button>
+				</a>
 			{:else}
 				<div></div>
 			{/if}
 
 			{#if hasPrevChapter}
-				<button
-					class="grid w-full cursor-pointer place-items-center rounded-lg border border-gray-700 p-3 dark:border-gray-300"
-					><a
-						href="/{novel_id}/{prevChapter}"
-						class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+				<a
+					href="/{novel_id}/{prevChapter}"
+					class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+				>
+					<button
+						class="grid w-full cursor-pointer place-items-center rounded-lg border border-gray-700 p-3 dark:border-gray-300"
 					>
 						<div class="flex items-center gap-2">
 							<ChevronLeft size={20} />
 							<span>Previous Chapter</span>
 						</div>
-					</a></button
-				>
+					</button>
+				</a>
 			{:else}
 				<div></div>
 			{/if}
