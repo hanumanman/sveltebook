@@ -15,25 +15,34 @@
 	const hasNextChapter = $derived(true); // Replace with actual logic
 	const hasPrevChapter = $derived(prevChapter > 0);
 
+	// Reference to the form element
+	let progressForm: HTMLFormElement;
+
+	function saveProgress() {
+		if (progressForm) {
+			const formData = new FormData(progressForm);
+			const url = progressForm.action;
+
+			fetch(url, { method: 'POST', body: formData });
+		}
+	}
+
 	$effect(() => {
 		if (hasNextChapter) {
 			preloadData(`/${novel_id}/${nextChapter}`);
 		}
-		// Trigger submit form
-		const saveProgressBtn = document.getElementById('save-progress-btn');
-		if (saveProgressBtn) {
-			saveProgressBtn.click();
-		}
+		// Save progress whenever the chapter changes
+		saveProgress();
 	});
 </script>
 
+<!-- Hidden form to store values -->
+<form class="hidden" method="post" use:enhance bind:this={progressForm}>
+	<input type="text" name="lastChapterName" value={chapter_name} />
+	<input type="text" name="chapterNumber" value={chapter_number} />
+</form>
+
 <div class="min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-	<form class="hidden" method="post" use:enhance>
-		<input type="text" name="lastChapterName" value={chapter_name} />
-		<input type="text" name="chapterNumber" value={chapter_number} />
-		<input type="text" name="chapterNumber" value={chapter_number} />
-		<button type="submit" id="save-progress-btn">Submit action</button>
-	</form>
 	<main class="mx-auto max-w-screen-lg px-4 py-6">
 		<!-- Back to Novel Link -->
 		<a
