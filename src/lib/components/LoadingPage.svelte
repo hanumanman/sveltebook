@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { LoaderCircle } from 'lucide-svelte';
-	import '../app.css';
 </script>
 
 <div class={`flex h-[70dvh] flex-col items-center justify-center gap-2`}>

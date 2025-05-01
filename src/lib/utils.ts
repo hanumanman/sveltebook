@@ -1,3 +1,5 @@
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 /**
  * Converts a plain text string into an array of paragraphs.
  *
@@ -24,4 +26,8 @@ export function scrollPage(pos: 'top' | 'bottom') {
 		top: pos === 'top' ? 0 : document.body.scrollHeight,
 		behavior: 'smooth'
 	});
+}
+
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
 }

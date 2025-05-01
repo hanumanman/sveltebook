@@ -1,1 +1,51 @@
 @import 'tailwindcss';
+
+@theme {
+	/* Burgundy */
+	--color-burgundy-50: #f9e6e7;
+	--color-burgundy-100: #f2c1c4;
+	--color-burgundy-200: #e69a9e;
+	--color-burgundy-300: #d97277;
+	--color-burgundy-400: #b03c44;
+	--color-burgundy-500: #70161e;
+	--color-burgundy-600: #65131b;
+	--color-burgundy-700: #541016;
+	--color-burgundy-800: #430c11;
+	--color-burgundy-900: #32090d;
+
+	/* Chocolate Cosmos */
+	--color-chocolateCosmos-50: #f8e7e7;
+	--color-chocolateCosmos-100: #f0c4c4;
+	--color-chocolateCosmos-200: #e39d9d;
+	--color-chocolateCosmos-300: #d57676;
+	--color-chocolateCosmos-400: #a24243;
+	--color-chocolateCosmos-500: #5c1a1b;
+	--color-chocolateCosmos-600: #531718;
+	--color-chocolateCosmos-700: #451415;
+	--color-chocolateCosmos-800: #371010;
+	--color-chocolateCosmos-900: #290c0c;
+
+	/* Caribbean Current */
+	--color-caribbeanCurrent-50: #e8f1f1;
+	--color-caribbeanCurrent-100: #c6dcdc;
+	--color-caribbeanCurrent-200: #a0c6c7;
+	--color-caribbeanCurrent-300: #79afb1;
+	--color-caribbeanCurrent-400: #4d8b8d;
+	--color-caribbeanCurrent-500: #38686a;
+	--color-caribbeanCurrent-600: #325e60;
+	--color-caribbeanCurrent-700: #294e50;
+	--color-caribbeanCurrent-800: #213f40;
+	--color-caribbeanCurrent-900: #192f30;
+
+	/* Penn Blue */
+	--color-pennBlue-50: #e6e7ee;
+	--color-pennBlue-100: #c0c4d5;
+	--color-pennBlue-200: #969db8;
+	--color-pennBlue-300: #6c759a;
+	--color-pennBlue-400: #445584;
+	--color-pennBlue-500: #0b1d51;
+	--color-pennBlue-600: #0a1a49;
+	--color-pennBlue-700: #08163d;
+	--color-pennBlue-800: #071231;
+	--color-pennBlue-900: #050e25;
+}

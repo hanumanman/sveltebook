@@ -4,7 +4,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const chapterId = parseInt(params.chapterId);
-	const novelId = parseInt(params.noveld);
+	const novelId = parseInt(params.novelId);
 	if (isNaN(chapterId) || isNaN(novelId)) {
 		throw new Error('Invalid chapter or novel id');
 	}
@@ -16,7 +16,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const lastChapterName = formData.get('lastChapterName') as string;
 		const chapterNumber = parseInt(formData.get('chapterNumber') as string);
-		const novelId = parseInt(event.params.noveld);
+		const novelId = parseInt(event.params.novelId);
 		const userId = event.locals.user?.id;
 		if (!isNaN(novelId) && !isNaN(chapterNumber) && userId) {
 			await saveProgress(userId, novelId, chapterNumber, lastChapterName);
