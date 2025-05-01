@@ -1,25 +1,24 @@
 <script lang="ts">
-	import { Book, User, Menu, X } from 'lucide-svelte';
 	import '../app.css';
-	import type { LayoutProps } from './$types';
+	import LoadingPage from './LoadingPage.svelte';
+
 	import { enhance } from '$app/forms';
-	import { slide } from 'svelte/transition';
+	import { navigating } from '$app/state';
+	import { Book, User } from 'lucide-svelte';
+	import type { LayoutProps } from './$types';
 
 	let { children, data }: LayoutProps = $props();
 	const { session, user } = $derived(data);
 
-	// State for mobile menu toggle
-	let mobileMenuOpen = $state(false);
-
-	// Function to toggle mobile menu
-	function toggleMobileMenu() {
-		mobileMenuOpen = !mobileMenuOpen;
-	}
+	let isNavigating = $derived(!!navigating.complete);
 </script>
 
 <!-- Header/Navigation -->
-<header class="border-b border-gray-800 bg-gray-900">
-	<div class="flex w-full items-center justify-between px-4 py-4">
+<header
+	id="blackbook-header"
+	class="flex h-[10dvh] flex-col justify-center border-b border-gray-800 bg-gray-900"
+>
+	<div class="absolute flex w-full items-center justify-between px-4 py-4">
 		<a href="/" class="flex items-center space-x-3">
 			<span class="text-2xl text-violet-400">
 				<Book />
@@ -27,21 +26,8 @@
 			<span class="text-xl font-bold text-gray-100">Blackbook</span>
 		</a>
 
-		<!-- Mobile menu button -->
-		<button
-			class="cursor-pointer text-gray-100 hover:text-violet-300 focus:outline-none md:hidden"
-			onclick={toggleMobileMenu}
-			aria-label="Toggle menu"
-		>
-			{#if mobileMenuOpen}
-				<X size={24} />
-			{:else}
-				<Menu size={24} />
-			{/if}
-		</button>
-
 		<!-- Desktop navigation -->
-		<nav class="hidden md:block">
+		<nav class=" md:block">
 			<ul class="flex items-center space-x-6">
 				{#if session}
 					<li class="flex items-center space-x-3">
@@ -52,9 +38,10 @@
 								</span>
 								<span>{user.username}</span>
 							</div>
-							<form method="post" use:enhance>
+							<form method="post" action="/logout" use:enhance>
 								<button
-									class="rounded bg-violet-700 px-3 py-1 text-sm text-white transition-colors hover:bg-violet-600"
+									type="submit"
+									class="cursor-pointer rounded bg-violet-700 px-3 py-1 text-sm text-white transition-colors hover:bg-violet-600"
 								>
 									Sign out
 								</button>
@@ -79,58 +66,23 @@
 			</ul>
 		</nav>
 	</div>
-
-	<!-- Mobile navigation menu -->
-	{#if mobileMenuOpen}
-		<div
-			transition:slide={{ duration: 300, axis: 'y' }}
-			class="border-t border-gray-800 bg-gray-900 px-4 py-4 md:hidden"
-		>
-			<ul class="flex flex-col space-y-4">
-				{#if session}
-					<li>
-						{#if user?.id}
-							<div class="flex items-center justify-between text-gray-200">
-								<div class="flex items-center space-x-3">
-									<span class="flex h-8 w-8 items-center justify-center rounded-full bg-violet-700">
-										<User size={18} />
-									</span>
-									<span>{user.username}</span>
-								</div>
-								<form method="post" use:enhance class="mt-2">
-									<button
-										class="rounded bg-violet-700 px-3 py-1 text-sm text-white transition-colors hover:bg-violet-600"
-									>
-										Sign out
-									</button>
-								</form>
-							</div>
-						{:else}
-							<span class="flex h-8 w-8 items-center justify-center rounded-full bg-violet-700">
-								<User size={18} />
-							</span>
-						{/if}
-					</li>
-				{:else}
-					<li>
-						<a
-							href="/login/google"
-							data-sveltekit-preload-data="off"
-							class="block w-full rounded bg-violet-700 px-4 py-2 text-center text-white transition-colors hover:bg-violet-600"
-						>
-							Login
-						</a>
-					</li>
-				{/if}
-			</ul>
-		</div>
-	{/if}
 </header>
 
-{@render children()}
+<div class="h-fit min-h-[70dvh] bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+	<main>
+		{#if isNavigating}
+			<LoadingPage />
+		{:else}
+			{@render children()}
+		{/if}
+	</main>
+</div>
 
 <!-- Footer -->
-<footer class="mt-auto border-t border-gray-800 bg-gray-900 py-8">
+<footer
+	id="blackbook-footer"
+	class="mt-auto flex h-[20dvh] flex-col justify-center border-t border-gray-800 bg-gray-900 py-8"
+>
 	<div class="mx-auto max-w-screen-lg px-4">
 		<div class="flex flex-col items-center justify-between md:flex-row">
 			<div class="mb-4 flex items-center space-x-3 md:mb-0">

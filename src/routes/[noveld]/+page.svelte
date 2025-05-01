@@ -16,7 +16,7 @@
 	const genres = $derived(novel_genre.split(','));
 </script>
 
-<div class="min-h-screen bg-gray-900 px-4 py-6 text-gray-200">
+<div class="min-h-[70dvh] bg-gray-900 px-4 py-6 text-gray-200">
 	<div class="flex flex-col gap-6 md:flex-row">
 		<!-- Novel Cover Image -->
 		<div class="md:w-1/3 lg:w-1/4">

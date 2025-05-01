@@ -1,7 +1,5 @@
 import { getAllNovels } from '$lib/server/db/queries/select';
-import { fail, redirect } from '@sveltejs/kit';
-import type { Actions, PageServerLoad } from './$types';
-import { deleteSessionTokenCookie, invalidateSession } from '$lib/server/auth/auth';
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
 	const res = await getAllNovels();
@@ -11,15 +9,4 @@ export const load: PageServerLoad = async () => {
 	}));
 
 	return { novels };
-};
-
-export const actions: Actions = {
-	default: async (event) => {
-		if (event.locals.session === null) {
-			return fail(401);
-		}
-		await invalidateSession(event.locals.session.id);
-		deleteSessionTokenCookie(event);
-		return redirect(302, '/');
-	}
 };
