@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { preloadData } from '$app/navigation';
+	import Button from '$lib/components/Button.svelte';
 	import { plainContentToParagraphs, scrollPage } from '$lib/utils';
 	import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-svelte';
 	import type { PageProps } from './$types';
@@ -42,7 +43,7 @@
 	<input type="text" name="chapterNumber" value={chapter_number} />
 </form>
 
-<div class="flex w-full max-w-lg flex-col justify-between p-4">
+<div class="mx-auto flex w-full max-w-lg flex-col justify-between p-4">
 	<!-- Back to Novel Link -->
 	<a
 		href="/{novel_id}"
@@ -102,14 +103,10 @@
 	<div class="flex flex-col gap-2 border-t border-b border-gray-200 pt-4 dark:border-gray-700">
 		{#if hasNextChapter}
 			<a href="/{novel_id}/{nextChapter}" class="">
-				<button
-					class="grid w-full cursor-pointer place-items-center rounded-lg border bg-gray-100 p-3 text-black hover:bg-gray-300"
-				>
-					<div class="flex items-center gap-2">
-						<span>Next Chapter</span>
-						<ChevronRight size={20} />
-					</div>
-				</button>
+				<Button className="w-full">
+					Next Chapter
+					<ChevronRight size={20} />
+				</Button>
 			</a>
 		{:else}
 			<div></div>
@@ -121,7 +118,7 @@
 				class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
 			>
 				<button
-					class="grid w-full cursor-pointer place-items-center rounded-lg border border-gray-700 p-3 dark:border-gray-300"
+					class="grid w-full cursor-pointer place-items-center rounded-lg border border-gray-700 px-3 py-2 dark:border-gray-300"
 				>
 					<div class="flex items-center gap-2">
 						<ChevronLeft size={20} />
@@ -133,7 +130,7 @@
 			<div></div>
 		{/if}
 		<button
-			class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 dark:border-gray-300"
+			class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-700 px-3 py-2 dark:border-gray-300"
 			onclick={() => scrollPage('top')}
 		>
 			<span>Go to Top</span>

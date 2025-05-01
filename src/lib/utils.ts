@@ -1,3 +1,6 @@
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
 /**
  * Converts a plain text string into an array of paragraphs.
  *
@@ -24,4 +27,31 @@ export function scrollPage(pos: 'top' | 'bottom') {
 		top: pos === 'top' ? 0 : document.body.scrollHeight,
 		behavior: 'smooth'
 	});
+}
+
+/**
+ * Utility function to conditionally join CSS class names together.
+ *
+ * This function combines the functionality of `clsx` and `twMerge` to efficiently
+ * merge multiple class value inputs. It first processes the inputs with `clsx`
+ * to handle conditional classes, then applies `twMerge` to properly handle
+ * Tailwind CSS class conflicts.
+ *
+ * @param inputs - An array of class values which can be strings, objects, arrays, etc.
+ * @returns A string of merged class names with conflicts resolved
+ *
+ * @example
+ * ```typescript
+ * // Basic usage
+ * cn('px-2', 'py-1', 'bg-red-500');  // 'px-2 py-1 bg-red-500'
+ *
+ * // With conditional classes
+ * cn('btn', { 'btn-primary': isPrimary, 'btn-secondary': !isPrimary });
+ *
+ * // With conflicting Tailwind classes
+ * cn('px-2', 'px-4');  // 'px-4' (the later class wins)
+ * ```
+ */
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
 }

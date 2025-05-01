@@ -2,7 +2,7 @@ import { getNovelFromId, getProgress } from '$lib/server/db/queries/select';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const novelId = parseInt(params.noveld);
+	const novelId = parseInt(params.novelId);
 	if (isNaN(novelId)) {
 		throw new Error('Invalid chapter or novel id');
 	}
