@@ -7,13 +7,12 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
-	const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data);
+	const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter);
 	const prevChapter = $derived(chapter_number - 1);
 	const nextChapter = $derived(chapter_number + 1);
 	const paragraphs = $derived(plainContentToParagraphs(chapter_content));
 
-	// TODO: Add logic to determine if next chapter exists
-	const hasNextChapter = $derived(true); // Replace with actual logic
+	const hasNextChapter = $derived(chapter_number < data.chapter_count);
 	const hasPrevChapter = $derived(prevChapter > 0);
 
 	// Reference to the form element
@@ -54,17 +53,17 @@
 	</a>
 
 	<!-- Chapter Title -->
-	<div class="mb-6 flex items-end justify-between gap-4 border-b border-gray-500 pb-6">
+	<div class="mb-6 gap-4 border-b border-gray-500 pb-6">
 		<div>
-			<h1 class="pb-3 text-2xl text-gray-600 dark:text-gray-400">Chapter {chapter_number}</h1>
+			<h1 class="pb-3 text-xl text-gray-600 dark:text-gray-400">Chapter {chapter_number}</h1>
 			<h2 class="mb-1 text-3xl font-bold">{chapter_name}</h2>
 		</div>
 
 		<!-- Chapter Navigation -->
-		<div class="flex justify-end gap-2">
+		<div class="flex justify-end gap-2 pt-3">
 			<button
 				onclick={() => scrollPage('bottom')}
-				class="cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+				class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
 				title="Scroll to Bottom"
 			>
 				<ChevronDown size={20} />
@@ -73,7 +72,7 @@
 			{#if hasPrevChapter}
 				<a
 					href="/{novel_id}/{prevChapter}"
-					class="rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+					class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
 					title="Previous Chapter"
 				>
 					<ChevronLeft size={20} />
@@ -83,7 +82,7 @@
 			{#if hasNextChapter}
 				<a
 					href="/{novel_id}/{nextChapter}"
-					class="rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+					class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
 					title="Next Chapter"
 				>
 					<ChevronRight size={20} />
@@ -99,11 +98,17 @@
 		{/each}
 	</article>
 
+	{#if !hasNextChapter}
+		<div class="flex justify-center pb-3">
+			<span>You have caught up!</span>
+		</div>
+	{/if}
+
 	<!-- Bottom Chapter Navigation -->
 	<div class="flex flex-col gap-2 border-t border-b border-gray-200 pt-4 dark:border-gray-700">
 		{#if hasNextChapter}
 			<a href="/{novel_id}/{nextChapter}" class="">
-				<Button className="w-full">
+				<Button className="w-full border border-gray-600">
 					Next Chapter
 					<ChevronRight size={20} />
 				</Button>
@@ -117,24 +122,22 @@
 				href="/{novel_id}/{prevChapter}"
 				class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
 			>
-				<button
-					class="grid w-full cursor-pointer place-items-center rounded-lg border border-gray-700 px-3 py-2 dark:border-gray-300"
-				>
+				<Button className="w-full bg-pennBlue-900 hover:bg-pennBlue-600 border border-gray-500">
 					<div class="flex items-center gap-2">
 						<ChevronLeft size={20} />
 						<span>Previous Chapter</span>
 					</div>
-				</button>
+				</Button>
 			</a>
 		{:else}
 			<div></div>
 		{/if}
-		<button
-			class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-700 px-3 py-2 dark:border-gray-300"
+		<Button
+			className="w-full bg-pennBlue-900 hover:bg-pennBlue-600 border border-gray-500"
 			onclick={() => scrollPage('top')}
 		>
 			<span>Go to Top</span>
 			<ChevronUp size={20} />
-		</button>
+		</Button>
 	</div>
 </div>

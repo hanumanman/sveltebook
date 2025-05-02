@@ -3,7 +3,7 @@ import { getChapter } from '$lib/server/db/queries/select';
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, parent }) => {
 	const chapterId = parseInt(params.chapterId);
 	const novelId = parseInt(params.novelId);
 	if (isNaN(chapterId) || isNaN(novelId)) {
@@ -15,7 +15,11 @@ export const load: PageServerLoad = async ({ params }) => {
 		return error(500, { message: 'Chapter not found' });
 	}
 
-	return chapter;
+	const {
+		novel: { chapter_count }
+	} = await parent();
+
+	return { chapter, chapter_count };
 };
 
 export const actions: Actions = {

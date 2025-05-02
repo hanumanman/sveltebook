@@ -1,8 +1,8 @@
 import { getNovelFromId, getProgress } from '$lib/server/db/queries/select';
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
+export const load: LayoutServerLoad = async ({ params, locals }) => {
 	const novelId = parseInt(params.novelId);
 	if (isNaN(novelId)) {
 		error(404, { message: 'Invalid novel id' });
