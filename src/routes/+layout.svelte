@@ -3,8 +3,8 @@
 	import Header from '$lib/components/Header.svelte';
 	import '../app.css';
 	import type { LayoutProps } from './$types';
-	import Footer from './Footer.svelte';
-	import LoadingPage from './LoadingPage.svelte';
+	import Footer from '../lib/components/Footer.svelte';
+	import LoadingPage from '$lib/components/LoadingPage.svelte';
 
 	let { children, data }: LayoutProps = $props();
 	const { session, user } = $derived(data);

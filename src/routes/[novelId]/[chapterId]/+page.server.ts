@@ -1,14 +1,21 @@
 import { saveProgress } from '$lib/server/db/queries/inserts';
 import { getChapter } from '$lib/server/db/queries/select';
+import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const chapterId = parseInt(params.chapterId);
 	const novelId = parseInt(params.novelId);
 	if (isNaN(chapterId) || isNaN(novelId)) {
-		throw new Error('Invalid chapter or novel id');
+		error(404, { message: 'Invalid chapter or novel id' });
 	}
-	return getChapter({ chapter_number: chapterId, novelID: novelId });
+	const chapter = await getChapter({ chapter_number: chapterId, novelID: novelId });
+
+	if (!chapter) {
+		return error(500, { message: 'Chapter not found' });
+	}
+
+	return chapter;
 };
 
 export const actions: Actions = {
