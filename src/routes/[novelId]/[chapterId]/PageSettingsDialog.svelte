@@ -7,10 +7,11 @@
 		toggleDialogFn: () => void;
 	}
 
-	let { open, toggleDialogFn } = $props();
+	let { open, toggleDialogFn }: Props = $props();
 </script>
 
-<dialog {open} class="h-[100dvh] w-full bg-transparent">
+<!-- NOTE: This component must be placed at the top of the page -->
+<dialog {open} class="fixed h-[100dvh] w-full bg-transparent">
 	<div class="grid h-full w-full place-items-center">
 		<div
 			class="bg-pennBlue-900 flex w-fit max-w-lg flex-col items-center justify-center gap-4 rounded-lg border-2 border-gray-400 p-4 text-gray-300 md:p-6"

@@ -39,20 +39,14 @@
 		saveProgress();
 	});
 
-	// let settingsDialog: HTMLDialogElement;
-	// function toggleDialog() {
-	// 	if (settingsDialog.open) {
-	// 		settingsDialog.close();
-	// 	} else {
-	// 		settingsDialog.showModal();
-	// 	}
-	// }
-
 	let openSettingsDialog = $state(false);
 	function toggleSettingsDialog() {
 		openSettingsDialog = !openSettingsDialog;
 	}
 </script>
+
+<!-- Settings dialog -->
+<PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
 
 <div class="mx-auto flex w-full max-w-lg flex-col justify-between p-4">
 	<!-- Back to Novel Link -->
@@ -156,9 +150,6 @@
 		</Button>
 	</div>
 </div>
-
-<!-- Settings dialog -->
-<PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
 
 <!-- Hidden form to store progress values -->
 <form class="hidden" method="post" use:enhance bind:this={progressForm}>
