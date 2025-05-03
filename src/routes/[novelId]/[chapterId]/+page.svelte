@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageSettingsDialog from './PageSettingsDialog.svelte';
+
 	import { enhance } from '$app/forms';
 	import { preloadData } from '$app/navigation';
 	import Button from '$lib/components/Button.svelte';
@@ -37,78 +39,20 @@
 		saveProgress();
 	});
 
-	let settingsDialog: HTMLDialogElement;
-	function toggleDialog() {
-		if (settingsDialog.open) {
-			settingsDialog.close();
-		} else {
-			settingsDialog.showModal();
-		}
+	// let settingsDialog: HTMLDialogElement;
+	// function toggleDialog() {
+	// 	if (settingsDialog.open) {
+	// 		settingsDialog.close();
+	// 	} else {
+	// 		settingsDialog.showModal();
+	// 	}
+	// }
+
+	let openSettingsDialog = $state(false);
+	function toggleSettingsDialog() {
+		openSettingsDialog = !openSettingsDialog;
 	}
 </script>
-
-<!-- Settings dialog -->
-<dialog bind:this={settingsDialog} class="h-[100dvh] w-full bg-transparent">
-	<div class="grid h-full w-full place-items-center">
-		<div
-			class="bg-pennBlue-900 flex w-fit max-w-lg flex-col items-center justify-center gap-4 rounded-lg border-2 border-gray-400 p-4 text-gray-300 md:p-6"
-		>
-			<div class="w-full">
-				<h2>Font size</h2>
-				<div class="flex w-full gap-2">
-					<input
-						type="range"
-						class="grow"
-						bind:value={$pageSettingsStore.fontSize}
-						min="12"
-						max="24"
-						step="0.1"
-					/>
-					<p>{$pageSettingsStore.fontSize} px</p>
-				</div>
-			</div>
-			<div class="w-full">
-				<h2>Line height</h2>
-				<div class="flex w-full gap-2">
-					<input
-						type="range"
-						class="grow"
-						bind:value={$pageSettingsStore.lineHeight}
-						min="0"
-						max="5"
-						step="0.1"
-					/>
-					<p>{$pageSettingsStore.lineHeight}</p>
-				</div>
-			</div>
-			<p
-				class="line-clamp-3"
-				style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
-			>
-				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam, consectetur sunt, aliquam
-				corrupti cupiditate doloremque, ipsum suscipit adipisci maxime itaque beatae quae delectus
-				inventore nihil. Veniam ut nostrum voluptates eaque.
-			</p>
-			<div class="flex gap-2">
-				<Button onclick={toggleDialog}>Save</Button>
-				<Button
-					onclick={() => {
-						$pageSettingsStore = {
-							fontSize: 16,
-							lineHeight: 1.5
-						};
-					}}>Reset</Button
-				>
-			</div>
-		</div>
-	</div>
-</dialog>
-
-<!-- Hidden form to store values -->
-<form class="hidden" method="post" use:enhance bind:this={progressForm}>
-	<input type="text" name="lastChapterName" value={chapter_name} />
-	<input type="text" name="chapterNumber" value={chapter_number} />
-</form>
 
 <div class="mx-auto flex w-full max-w-lg flex-col justify-between p-4">
 	<!-- Back to Novel Link -->
@@ -130,7 +74,7 @@
 		<!-- Page Controls -->
 		<div class="flex justify-end gap-2 pt-3">
 			<button
-				onclick={toggleDialog}
+				onclick={toggleSettingsDialog}
 				class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
 				title="Open Settings Dialog"
 			>
@@ -212,3 +156,12 @@
 		</Button>
 	</div>
 </div>
+
+<!-- Settings dialog -->
+<PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
+
+<!-- Hidden form to store progress values -->
+<form class="hidden" method="post" use:enhance bind:this={progressForm}>
+	<input type="text" name="lastChapterName" value={chapter_name} />
+	<input type="text" name="chapterNumber" value={chapter_number} />
+</form>
