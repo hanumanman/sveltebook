@@ -2,10 +2,11 @@
 	import { enhance } from '$app/forms';
 	import { preloadData } from '$app/navigation';
 	import Button from '$lib/components/Button.svelte';
-	import { plainContentToParagraphs, scrollPage } from '$lib/utils';
-	import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-svelte';
-	import type { PageProps } from './$types';
 	import LinkButton from '$lib/components/LinkButton.svelte';
+	import { plainContentToParagraphs, scrollPage } from '$lib/utils';
+	import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte';
+	import type { PageProps } from './$types';
+	import { pageSettingsStore } from './pageSettingsStore';
 
 	let { data }: PageProps = $props();
 	const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter);
@@ -35,7 +36,73 @@
 		// Save progress whenever the chapter changes
 		saveProgress();
 	});
+
+	let settingsDialog: HTMLDialogElement;
+	function toggleDialog() {
+		if (settingsDialog.open) {
+			settingsDialog.close();
+		} else {
+			settingsDialog.showModal();
+		}
+	}
 </script>
+
+<!-- Settings dialog -->
+<dialog bind:this={settingsDialog} class="h-[100dvh] w-full bg-transparent">
+	<div class="grid h-full w-full place-items-center">
+		<div
+			class="bg-pennBlue-900 flex w-fit max-w-lg flex-col items-center justify-center gap-4 rounded-lg border-2 border-gray-400 p-4 text-gray-300 md:p-6"
+		>
+			<div class="w-full">
+				<h2>Font size</h2>
+				<div class="flex w-full gap-2">
+					<input
+						type="range"
+						class="grow"
+						bind:value={$pageSettingsStore.fontSize}
+						min="12"
+						max="24"
+						step="0.1"
+					/>
+					<p>{$pageSettingsStore.fontSize} px</p>
+				</div>
+			</div>
+			<div class="w-full">
+				<h2>Line height</h2>
+				<div class="flex w-full gap-2">
+					<input
+						type="range"
+						class="grow"
+						bind:value={$pageSettingsStore.lineHeight}
+						min="0"
+						max="5"
+						step="0.1"
+					/>
+					<p>{$pageSettingsStore.lineHeight}</p>
+				</div>
+			</div>
+			<p
+				class="line-clamp-3"
+				style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+			>
+				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam, consectetur sunt, aliquam
+				corrupti cupiditate doloremque, ipsum suscipit adipisci maxime itaque beatae quae delectus
+				inventore nihil. Veniam ut nostrum voluptates eaque.
+			</p>
+			<div class="flex gap-2">
+				<Button onclick={toggleDialog}>Save</Button>
+				<Button
+					onclick={() => {
+						$pageSettingsStore = {
+							fontSize: 16,
+							lineHeight: 1.5
+						};
+					}}>Reset</Button
+				>
+			</div>
+		</div>
+	</div>
+</dialog>
 
 <!-- Hidden form to store values -->
 <form class="hidden" method="post" use:enhance bind:this={progressForm}>
@@ -60,8 +127,15 @@
 			<h2 class="mb-1 text-3xl font-bold">{chapter_name}</h2>
 		</div>
 
-		<!-- Chapter Navigation -->
+		<!-- Page Controls -->
 		<div class="flex justify-end gap-2 pt-3">
+			<button
+				onclick={toggleDialog}
+				class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+				title="Open Settings Dialog"
+			>
+				<Settings size={20} />
+			</button>
 			<button
 				onclick={() => scrollPage('bottom')}
 				class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
@@ -93,7 +167,10 @@
 	</div>
 
 	<!-- Chapter Content -->
-	<article class="prose prose-lg dark:prose-invert max-w-none pb-4">
+	<article
+		style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+		class="prose prose-lg dark:prose-invert max-w-none pb-4"
+	>
 		{#each paragraphs as paragraph, i (i)}
 			<p>{paragraph}</p>
 		{/each}
