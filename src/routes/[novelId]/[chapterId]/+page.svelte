@@ -5,6 +5,7 @@
 	import { plainContentToParagraphs, scrollPage } from '$lib/utils';
 	import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-svelte';
 	import type { PageProps } from './$types';
+	import LinkButton from '$lib/components/LinkButton.svelte';
 
 	let { data }: PageProps = $props();
 	const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter);
@@ -105,37 +106,30 @@
 	{/if}
 
 	<!-- Bottom Chapter Navigation -->
-	<div class="flex flex-col gap-2 border-t border-b border-gray-200 pt-4 dark:border-gray-700">
+	<div class="flex flex-col gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
 		{#if hasNextChapter}
-			<a href="/{novel_id}/{nextChapter}" class="">
-				<Button className="w-full border border-gray-600">
-					Next Chapter
-					<ChevronRight size={20} />
-				</Button>
-			</a>
+			<LinkButton class="border border-gray-700" href="/{novel_id}/{nextChapter}">
+				Next Chapter
+				<ChevronRight size={20} />
+			</LinkButton>
 		{:else}
 			<div></div>
 		{/if}
 
 		{#if hasPrevChapter}
-			<a
+			<LinkButton
 				href="/{novel_id}/{prevChapter}"
-				class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+				class="bg-pennBlue-900 w-full border border-gray-700"
 			>
-				<Button className="w-full bg-pennBlue-900 hover:bg-pennBlue-600 border border-gray-500">
-					<div class="flex items-center gap-2">
-						<ChevronLeft size={20} />
-						<span>Previous Chapter</span>
-					</div>
-				</Button>
-			</a>
+				<div class="flex items-center gap-2">
+					<ChevronLeft size={20} />
+					<span>Previous Chapter</span>
+				</div>
+			</LinkButton>
 		{:else}
 			<div></div>
 		{/if}
-		<Button
-			className="w-full bg-pennBlue-900 hover:bg-pennBlue-600 border border-gray-500"
-			onclick={() => scrollPage('top')}
-		>
+		<Button class="bg-pennBlue-900 w-full border border-gray-700" onclick={() => scrollPage('top')}>
 			<span>Go to Top</span>
 			<ChevronUp size={20} />
 		</Button>

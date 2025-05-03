@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
+	import LinkButton from '$lib/components/LinkButton.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -60,16 +61,14 @@
 			</div>
 			{#if progress?.last_chapter_number}
 				<div class="mt-6">
-					<a href={`/${id}/${progress.last_chapter_number}`}>
-						<Button className="w-full">
-							Resume chapter {progress.last_chapter_number}: {progress?.last_chapter_name}
-						</Button>
-					</a>
+					<LinkButton href={`/${id}/${progress.last_chapter_number}`}>
+						Resume chapter {progress.last_chapter_number}: {progress?.last_chapter_name}
+					</LinkButton>
 				</div>
 			{/if}
 
 			<div class="mt-6">
-				<a href={`/${id}/1`}><Button className="w-full">Start Reading</Button></a>
+				<LinkButton href={`/${id}/1`}>Start Reading</LinkButton>
 			</div>
 		</div>
 	</div>

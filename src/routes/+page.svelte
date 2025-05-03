@@ -10,8 +10,7 @@
 		{#each novels as novel (novel.id)}
 			<a
 				href={`/${novel.id}`}
-				class="bg-pennBlue-900 overflow-hidden rounded-lg shadow-lg transition-transform
-				hover:scale-105"
+				class="bg-pennBlue-900 overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-105 hover:brightness-110"
 			>
 				<img src={novel.novel_image_link} alt={novel.novel_name} class="h-48 w-full object-cover" />
 				<div class="p-4">

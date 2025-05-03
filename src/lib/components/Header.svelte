@@ -27,7 +27,7 @@
 								<span>{user.username.split(' ')[0]}</span>
 							</div>
 							<form method="post" action="/logout" use:enhance>
-								<Button className="text-sm" type="submit">Logout</Button>
+								<Button class="text-sm" type="submit">Logout</Button>
 							</form>
 						{:else}
 							<span class="flex h-8 w-8 items-center justify-center rounded-full">
