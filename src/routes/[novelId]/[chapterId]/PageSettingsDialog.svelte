@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
-	import { pageSettingsStore } from './pageSettingsStore';
+	import { colorThemes, defaultPageSettings, pageSettingsStore } from './pageSettingsStore';
 
 	interface Props {
 		open: boolean;
@@ -45,8 +45,10 @@
 				</div>
 			</div>
 			<p
-				class="line-clamp-3"
-				style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+				class="line-clamp-3 rounded-lg p-2"
+				style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight}; color: {colorThemes[
+					$pageSettingsStore.theme
+				].textColor}; background-color: {colorThemes[$pageSettingsStore.theme].backgroundColor};"
 			>
 				Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam, consectetur sunt, aliquam
 				corrupti cupiditate doloremque, ipsum suscipit adipisci maxime itaque beatae quae delectus
@@ -56,10 +58,7 @@
 				<Button onclick={toggleDialogFn}>Save</Button>
 				<Button
 					onclick={() => {
-						$pageSettingsStore = {
-							fontSize: 16,
-							lineHeight: 1.5
-						};
+						$pageSettingsStore = defaultPageSettings;
 					}}>Reset</Button
 				>
 			</div>
