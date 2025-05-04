@@ -45,7 +45,6 @@
 	}
 </script>
 
-<!-- Settings dialog -->
 <PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
 
 <div class="mx-auto flex w-full max-w-lg flex-col justify-between p-4">
