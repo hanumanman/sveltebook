@@ -1,7 +1,7 @@
 <script lang="ts">
   import Button from '$lib/components/Button.svelte';
 
-  import { pageSettingsStore } from './pageSettingsStore';
+  import { pageSettingsStore, themes } from './pageSettingsStore';
 
   interface Props {
     open: boolean;
@@ -9,6 +9,12 @@
   }
 
   let { open, toggleDialogFn }: Props = $props();
+
+  //Convert themes to an array
+  const themesArray = Object.entries(themes).map(([key, value]) => ({
+    key,
+    value
+  }));
 </script>
 
 <!-- NOTE: This component must be placed at the top of the page -->
@@ -45,21 +51,43 @@
           <p>{$pageSettingsStore.lineHeight}</p>
         </div>
       </div>
-      <p
-        class="line-clamp-3"
-        style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+      <div class="w-full">
+        <h2>Theme</h2>
+        <div class="flex w-full gap-2 justify-between">
+          {#each themesArray as { key, value }, i (i)}
+            <Button
+              class="w-8 flex aspect-square"
+              style="color:{value.color}; background-color:{value.background};"
+              onclick={() => {
+                $pageSettingsStore.theme = key as keyof typeof themes;
+              }}
+            >
+              A
+            </Button>
+          {/each}
+        </div>
+      </div>
+
+      <div
+        style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};background-color: {themes[
+          $pageSettingsStore.theme
+        ].background}; color: {themes[$pageSettingsStore.theme].color};"
+        class="p-4 rounded-lg"
       >
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam, consectetur sunt, aliquam
-        corrupti cupiditate doloremque, ipsum suscipit adipisci maxime itaque beatae quae delectus
-        inventore nihil. Veniam ut nostrum voluptates eaque.
-      </p>
+        <p class="line-clamp-3">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam, consectetur sunt, aliquam
+          corrupti cupiditate doloremque, ipsum suscipit adipisci maxime itaque beatae quae delectus
+          inventore nihil. Veniam ut nostrum voluptates eaque.
+        </p>
+      </div>
       <div class="flex gap-2">
         <Button onclick={toggleDialogFn}>Save</Button>
         <Button
           onclick={() => {
             $pageSettingsStore = {
               fontSize: 16,
-              lineHeight: 1.5
+              lineHeight: 1.5,
+              theme: 'default'
             };
           }}>Reset</Button
         >

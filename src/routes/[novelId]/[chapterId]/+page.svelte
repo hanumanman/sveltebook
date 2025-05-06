@@ -8,7 +8,7 @@
 
   import type { PageProps } from './$types';
   import PageSettingsDialog from './PageSettingsDialog.svelte';
-  import { pageSettingsStore } from './pageSettingsStore';
+  import { pageSettingsStore, themes } from './pageSettingsStore';
 
   let { data }: PageProps = $props();
   const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter);
@@ -47,7 +47,12 @@
 
 <PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
 
-<div class="mx-auto flex w-full max-w-lg flex-col justify-between p-4">
+<div
+  class="mx-auto flex w-full max-w-lg flex-col justify-between p-4"
+  style="background-color: {themes[$pageSettingsStore.theme].background}; color: {themes[
+    $pageSettingsStore.theme
+  ].color};"
+>
   <!-- Back to Novel Link -->
   <a
     href="/{novel_id}"
