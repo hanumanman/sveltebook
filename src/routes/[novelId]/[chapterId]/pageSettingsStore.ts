@@ -4,8 +4,10 @@ import { writable } from 'svelte/store';
 interface IPageSettings {
   fontSize: number;
   lineHeight: number;
-  theme: keyof typeof themes;
+  theme: TTheme;
 }
+
+export type TTheme = keyof typeof themes;
 
 export const themes = {
   default: {

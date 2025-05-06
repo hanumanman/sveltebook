@@ -18,14 +18,14 @@
 </script>
 
 <!-- NOTE: This component must be placed at the top of the page -->
-<dialog {open} class="fixed h-[100dvh] w-full bg-transparent">
+<dialog {open} class="fixed h-[100dvh] w-[100dvw] bg-transparent">
   <div class="grid h-full w-full place-items-center">
     <div
-      class="bg-pennBlue-900 flex w-fit max-w-lg flex-col items-center justify-center gap-4 rounded-lg border-2 border-gray-400 p-4 text-gray-300 md:p-6"
+      class="bg-pennBlue-900 flex flex-col max-w-[100dvw] md:max-w-xl items-center justify-center gap-4 rounded-lg border-2 border-gray-400 p-4 text-gray-300 md:p-6"
     >
       <div class="w-full">
         <h2>Font size</h2>
-        <div class="flex w-full gap-2">
+        <div class="flex gap-2">
           <input
             type="range"
             class="grow"
@@ -53,10 +53,10 @@
       </div>
       <div class="w-full">
         <h2>Theme</h2>
-        <div class="flex w-full gap-2 justify-between">
+        <div class="flex pb-2 gap-2 justify-between overflow-x-scroll">
           {#each themesArray as { key, value }, i (i)}
             <Button
-              class="w-8 flex aspect-square"
+              class="w-20 flex aspect-square"
               style="color:{value.color}; background-color:{value.background};"
               onclick={() => {
                 $pageSettingsStore.theme = key as keyof typeof themes;
