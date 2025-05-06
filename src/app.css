@@ -1,51 +1,51 @@
 @import 'tailwindcss';
 
 @theme {
-	/* Burgundy */
-	--color-burgundy-50: #fdf1f2;
-	--color-burgundy-100: #fbe3e5;
-	--color-burgundy-200: #f7c7cb;
-	--color-burgundy-300: #f0a0a7;
-	--color-burgundy-400: #dd5d67;
-	--color-burgundy-500: #70161e;
-	--color-burgundy-600: #651318;
-	--color-burgundy-700: #540e15;
-	--color-burgundy-800: #460c12;
-	--color-burgundy-900: #3a090e;
+  /* Burgundy */
+  --color-burgundy-50: #fdf1f2;
+  --color-burgundy-100: #fbe3e5;
+  --color-burgundy-200: #f7c7cb;
+  --color-burgundy-300: #f0a0a7;
+  --color-burgundy-400: #dd5d67;
+  --color-burgundy-500: #70161e;
+  --color-burgundy-600: #651318;
+  --color-burgundy-700: #540e15;
+  --color-burgundy-800: #460c12;
+  --color-burgundy-900: #3a090e;
 
-	/* Caribbean Blue */
-	--color-caribbeanCurrent-50: #edfcfc;
-	--color-caribbeanCurrent-100: #d5f5f5;
-	--color-caribbeanCurrent-200: #aeebeb;
-	--color-caribbeanCurrent-300: #7cdada;
-	--color-caribbeanCurrent-400: #54aeb0;
-	--color-caribbeanCurrent-500: #38686a;
-	--color-caribbeanCurrent-600: #305859;
-	--color-caribbeanCurrent-700: #284748;
-	--color-caribbeanCurrent-800: #1e3536;
-	--color-caribbeanCurrent-900: #182c2d;
+  /* Caribbean Blue */
+  --color-caribbeanCurrent-50: #edfcfc;
+  --color-caribbeanCurrent-100: #d5f5f5;
+  --color-caribbeanCurrent-200: #aeebeb;
+  --color-caribbeanCurrent-300: #7cdada;
+  --color-caribbeanCurrent-400: #54aeb0;
+  --color-caribbeanCurrent-500: #38686a;
+  --color-caribbeanCurrent-600: #305859;
+  --color-caribbeanCurrent-700: #284748;
+  --color-caribbeanCurrent-800: #1e3536;
+  --color-caribbeanCurrent-900: #182c2d;
 
-	/* Chocolate Cosmos */
-	--color-chocolateCosmos-50: #fcf2f1;
-	--color-chocolateCosmos-100: #f9e3e2;
-	--color-chocolateCosmos-200: #f3c7c5;
-	--color-chocolateCosmos-300: #e49d99;
-	--color-chocolateCosmos-400: #ca6762;
-	--color-chocolateCosmos-500: #5c1a1b;
-	--color-chocolateCosmos-600: #4d1617;
-	--color-chocolateCosmos-700: #411213;
-	--color-chocolateCosmos-800: #350e0f;
-	--color-chocolateCosmos-900: #2b090a;
+  /* Chocolate Cosmos */
+  --color-chocolateCosmos-50: #fcf2f1;
+  --color-chocolateCosmos-100: #f9e3e2;
+  --color-chocolateCosmos-200: #f3c7c5;
+  --color-chocolateCosmos-300: #e49d99;
+  --color-chocolateCosmos-400: #ca6762;
+  --color-chocolateCosmos-500: #5c1a1b;
+  --color-chocolateCosmos-600: #4d1617;
+  --color-chocolateCosmos-700: #411213;
+  --color-chocolateCosmos-800: #350e0f;
+  --color-chocolateCosmos-900: #2b090a;
 
-	/* Penn Blue */
-	--color-pennBlue-50: #eef3ff;
-	--color-pennBlue-100: #dce7ff;
-	--color-pennBlue-200: #c1d3fe;
-	--color-pennBlue-300: #92b2fc;
-	--color-pennBlue-400: #5f84f8;
-	--color-pennBlue-500: #0b1d51;
-	--color-pennBlue-600: #091844;
-	--color-pennBlue-700: #081438;
-	--color-pennBlue-800: #06102b;
-	--color-pennBlue-900: #050c24;
+  /* Penn Blue */
+  --color-pennBlue-50: #eef3ff;
+  --color-pennBlue-100: #dce7ff;
+  --color-pennBlue-200: #c1d3fe;
+  --color-pennBlue-300: #92b2fc;
+  --color-pennBlue-400: #5f84f8;
+  --color-pennBlue-500: #0b1d51;
+  --color-pennBlue-600: #091844;
+  --color-pennBlue-700: #081438;
+  --color-pennBlue-800: #06102b;
+  --color-pennBlue-900: #050c24;
 }
