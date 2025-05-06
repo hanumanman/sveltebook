@@ -1,6 +1,7 @@
 import { saveProgress } from '$lib/server/db/queries/inserts';
 import { getChapter } from '$lib/server/db/queries/select';
 import { error } from '@sveltejs/kit';
+
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, parent }) => {

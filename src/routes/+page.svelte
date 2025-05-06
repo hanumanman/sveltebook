@@ -1,6 +1,8 @@
 <script lang="ts">
   import Button from '$lib/components/Button.svelte';
+
   import type { PageProps } from './$types';
+
   let { data }: PageProps = $props();
   const { novels } = $derived(data);
 </script>

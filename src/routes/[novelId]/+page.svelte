@@ -1,6 +1,7 @@
 <script lang="ts">
   import Button from '$lib/components/Button.svelte';
   import LinkButton from '$lib/components/LinkButton.svelte';
+
   import type { PageProps } from './$types';
 
   let { data }: PageProps = $props();

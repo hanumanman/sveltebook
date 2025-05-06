@@ -4,6 +4,7 @@ import {
   setSessionTokenCookie,
   validateSessionToken
 } from '$lib/server/auth/auth';
+
 import type { PageServerLoad, RequestEvent } from './$types';
 
 export const load: PageServerLoad = async (event: RequestEvent) => {

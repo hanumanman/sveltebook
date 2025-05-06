@@ -1,13 +1,13 @@
 <script lang="ts">
-  import PageSettingsDialog from './PageSettingsDialog.svelte';
-
   import { enhance } from '$app/forms';
   import { preloadData } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import LinkButton from '$lib/components/LinkButton.svelte';
   import { plainContentToParagraphs, scrollPage } from '$lib/utils';
   import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte';
+
   import type { PageProps } from './$types';
+  import PageSettingsDialog from './PageSettingsDialog.svelte';
   import { pageSettingsStore } from './pageSettingsStore';
 
   let { data }: PageProps = $props();

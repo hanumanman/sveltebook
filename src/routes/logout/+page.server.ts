@@ -1,5 +1,5 @@
 import { deleteSessionTokenCookie, invalidateSession } from '$lib/server/auth/auth';
-import { fail, redirect, type Actions } from '@sveltejs/kit';
+import { type Actions, fail, redirect } from '@sveltejs/kit';
 
 export const actions: Actions = {
   default: async (event) => {

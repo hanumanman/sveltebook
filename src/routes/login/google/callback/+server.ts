@@ -1,11 +1,10 @@
-import { decodeIdToken } from 'arctic';
-
-import type { RequestEvent } from '@sveltejs/kit';
-import type { OAuth2Tokens } from 'arctic';
-import { google, type TGoogleClaim } from '$lib/server/auth/google';
-import { getUserFromGoogleId } from '$lib/server/db/queries/select';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth/auth';
+import { type TGoogleClaim, google } from '$lib/server/auth/google';
 import { createUser } from '$lib/server/db/queries/inserts';
+import { getUserFromGoogleId } from '$lib/server/db/queries/select';
+import type { RequestEvent } from '@sveltejs/kit';
+import { decodeIdToken } from 'arctic';
+import type { OAuth2Tokens } from 'arctic';
 
 export async function GET(event: RequestEvent): Promise<Response> {
   const code = event.url.searchParams.get('code');

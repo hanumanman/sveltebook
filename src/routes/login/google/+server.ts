@@ -1,8 +1,7 @@
 // routes/login/google/+server.ts
-import { generateState, generateCodeVerifier } from 'arctic';
-
-import type { RequestEvent } from '@sveltejs/kit';
 import { google } from '$lib/server/auth/google';
+import type { RequestEvent } from '@sveltejs/kit';
+import { generateCodeVerifier, generateState } from 'arctic';
 
 export async function GET(event: RequestEvent): Promise<Response> {
   const state = generateState();
