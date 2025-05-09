@@ -45,6 +45,11 @@
   }
 </script>
 
+<svelte:head>
+  <title>{`Chapter ${chapter_number}: ${chapter_name}`}</title>
+  <meta name="description" content={`Chapter ${chapter_number}: ${chapter_name}`} />
+</svelte:head>
+
 <PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
 
 <div

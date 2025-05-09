@@ -18,13 +18,18 @@
   const genres = $derived(novel_genre.split(','));
 </script>
 
+<svelte:head>
+  <title>{novel_name}</title>
+  <meta name="description" content={novel_description} />
+</svelte:head>
+
 <div class="min-h-[70dvh] px-4 py-6">
   <div class="flex flex-col gap-6 md:flex-row">
     <!-- Novel Cover Image -->
     <div class="md:w-1/3 lg:w-1/4">
-      <img
+      <enhanced:img
         class="h-64 w-full rounded-md object-cover shadow-lg md:h-auto"
-        src={novel_image_link}
+        src={novel_image_link || ''}
         alt={`Cover of ${novel_name}`}
       />
     </div>

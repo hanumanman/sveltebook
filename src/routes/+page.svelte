@@ -7,6 +7,11 @@
   const { novels } = $derived(data);
 </script>
 
+<svelte:head>
+  <title>Blackbook</title>
+  <meta name="description" content="List of novels available." />
+</svelte:head>
+
 <div class="min-h-screen px-4 py-8 text-gray-100 md:px-6 lg:px-8">
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
     {#each novels as novel (novel.id)}
@@ -14,7 +19,11 @@
         href={`/${novel.id}`}
         class="bg-pennBlue-900 overflow-hidden rounded-lg shadow-lg transition-transform hover:scale-105 hover:brightness-110"
       >
-        <img src={novel.novel_image_link} alt={novel.novel_name} class="h-48 w-full object-cover" />
+        <enhanced:img
+          src={novel.novel_image_link || ''}
+          alt={novel.novel_name}
+          class="h-48 w-full object-cover"
+        />
         <div class="p-4">
           <h2 class="mb-2 text-xl font-semibold text-gray-300">{novel.novel_name}</h2>
           <p class="mb-3 line-clamp-3 text-sm text-gray-300">{novel.novel_description}</p>
