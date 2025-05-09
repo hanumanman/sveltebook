@@ -2,9 +2,17 @@ import { and, count, eq } from 'drizzle-orm';
 
 import { db } from '..';
 import { chaptersTable, novelsTable, progressTable, usersTable } from '../schema';
+import { type TSelectNovel } from '../schema';
 
-export async function getAllNovels() {
-  return await db.select().from(novelsTable);
+export interface INovel extends Omit<TSelectNovel, 'novel_genre'> {
+  novel_genre: string[];
+}
+
+export async function getAllNovels(): Promise<INovel[]> {
+  return (await db.select().from(novelsTable)).map((novel) => ({
+    ...novel,
+    novel_genre: novel.novel_genre.split(',')
+  }));
 }
 
 export async function getNovelFromId(id: number) {
