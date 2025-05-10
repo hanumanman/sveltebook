@@ -1,5 +1,6 @@
 <script lang="ts">
   import LinkButton from '$lib/components/LinkButton.svelte';
+  import ProgressBar from '$lib/components/ProgressBar.svelte';
 
   import type { PageProps } from './$types';
 
@@ -15,7 +16,12 @@
     novel_name
   } = $derived(novel);
 
-  const genres = $derived(novel_genre.split(','));
+  const genres: string[] = $derived(novel_genre.split(','));
+  const percent: number = $derived(
+    !progress?.last_chapter_number
+      ? 0
+      : Math.round((progress?.last_chapter_number / chapter_count) * 100)
+  );
 </script>
 
 <svelte:head>
@@ -65,6 +71,14 @@
         </p>
       </div>
       {#if progress?.last_chapter_number}
+        <div class="p-6 mt-4 rounded-lg border border-gray-500">
+          <p class="text-lg font-semibold">You have finished {percent}% of the book!</p>
+          <ProgressBar
+            class="mt-4"
+            value={progress?.last_chapter_number || 0}
+            maxValue={chapter_count}
+          />
+        </div>
         <div class="mt-6">
           <LinkButton href={`/${id}/${progress.last_chapter_number}`}>
             Resume chapter {progress.last_chapter_number}: {progress?.last_chapter_name}

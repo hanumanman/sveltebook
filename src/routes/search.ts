@@ -22,8 +22,19 @@ export function getNormalizedString(str: string): string {
     .replace(/đ/g, 'd');
 }
 
-// Compare a string with its bracketed + normalized version, then combine them
-// Example: Compare 'Café' with '[C]a[f][e]' , then return '[C]a[f][é]'
+/**
+ * Processes a string with bracketed sections, replacing the brackets with HTML span tags
+ * with a yellow text color. Used to highlight matched sections in a search result.
+ *
+ * @param original - The original unprocessed string
+ * @param bracketedString - A string containing the same content as original but with
+ * some characters enclosed in square brackets to indicate they should be highlighted
+ * @returns A string with bracketed sections replaced by HTML span tags with yellow text styling
+ *
+ * @example
+ * processString("Hello world!", "Hello [wor]ld!")
+ * // Returns "Hello <span class="text-yellow-600">wor</span>ld!"
+ */
 export function processString(original: string, bracketedString: string): string {
   let result = '';
   let bracketCount = 0;
@@ -80,31 +91,40 @@ interface ISearchArgs {
 export function searchHomepage({ searchTerm, novels }: ISearchArgs): INovelResult[] {
   const nameResult = fuzzy.filter(getNormalizedString(searchTerm), novels, {
     ...options,
-    extract: function (el) {
+    extract: function (el): string {
       return getNormalizedString(el.novel_name);
     }
   });
   const authorResult = fuzzy.filter(getNormalizedString(searchTerm), novels, {
     ...options,
-    extract: function (el) {
+    extract: function (el): string {
       return getNormalizedString(el.novel_author);
     }
   });
-  const nameResults = nameResult.map((result) => ({
+
+  // Add explicit type annotation here
+  const nameResults: INovelResult[] = nameResult.map((result) => ({
     ...result.original,
     processedString: processString(result.original.novel_name, result.string),
     highlightName: true
   }));
 
-  const authorResults = authorResult.map((result) => ({
+  // Add explicit type annotation here
+  const authorResults: INovelResult[] = authorResult.map((result) => ({
     ...result.original,
     processedString: processString(result.original.novel_author, result.string),
     highlightName: false
   }));
 
-  const combinedResults = [...nameResults, ...authorResults];
-  const uniqueResults = Array.from(new Set(combinedResults.map((novel) => novel.id)))
-    .map((id) => combinedResults.find((novel) => novel.id === id))
+  const combinedResults: INovelResult[] = [...nameResults, ...authorResults];
+
+  // Break down complex operations to help TypeScript
+  const novelIds: number[] = Array.from(new Set<number>(combinedResults.map((novel) => novel.id)));
+  const uniqueResults: INovelResult[] = novelIds
+    .map((id) => {
+      const found = combinedResults.find((novel) => novel.id === id);
+      return found;
+    })
     .filter((novel): novel is INovelResult => Boolean(novel));
 
   return uniqueResults;
