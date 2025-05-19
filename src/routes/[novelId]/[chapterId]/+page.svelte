@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { preloadData } from '$app/navigation';
+  import { goto, preloadData } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import LinkButton from '$lib/components/LinkButton.svelte';
   import { plainContentToParagraphs, scrollPage } from '$lib/utils';
@@ -37,6 +37,25 @@
     }
     // Save progress whenever the chapter changes
     saveProgress();
+
+    // Scroll to the top of the page manually
+    scrollPage('top');
+  });
+
+  $effect(() => {
+    // When user scrolls to the bottom of the page, navigate to the next chapter
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight;
+
+      if (scrollTop + clientHeight >= scrollHeight - 5) {
+        if (hasNextChapter) {
+          goto(`/${novel_id}/${nextChapter}`);
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
   });
 
   let openSettingsDialog = $state(false);
