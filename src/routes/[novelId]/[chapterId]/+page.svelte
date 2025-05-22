@@ -37,6 +37,9 @@
     }
     // Save progress whenever the chapter changes
     saveProgress();
+
+    // Scroll to the top of the page manually
+    scrollPage('top');
   });
 
   let openSettingsDialog = $state(false);

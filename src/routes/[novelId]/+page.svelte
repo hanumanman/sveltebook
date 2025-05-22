@@ -84,10 +84,18 @@
             Resume chapter {progress.last_chapter_number}: {progress?.last_chapter_name}
           </LinkButton>
         </div>
+        <div class="mt-6">
+          <LinkButton href={`/infinite/${id}/${progress.last_chapter_number}`}>
+            Resume chapter {progress.last_chapter_number}: {progress?.last_chapter_name} (infinite mode)
+          </LinkButton>
+        </div>
       {/if}
 
       <div class="mt-6">
         <LinkButton href={`/${id}/1`}>Start Reading</LinkButton>
+      </div>
+      <div class="mt-6">
+        <LinkButton href={`/${id}/1`}>Start Reading (Infinite mode)</LinkButton>
       </div>
     </div>
   </div>
