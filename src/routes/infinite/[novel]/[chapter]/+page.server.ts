@@ -5,7 +5,6 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, parent }) => {
-  console.log('RUN LOAD FN');
   const chapterId = parseInt(params.chapter);
   const novelId = parseInt(params.novel);
   if (isNaN(chapterId) || isNaN(novelId)) {

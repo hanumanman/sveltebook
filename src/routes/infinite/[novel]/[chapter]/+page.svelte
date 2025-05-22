@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
   import { preloadData, pushState } from '$app/navigation';
   import { scrollPage } from '$lib/utils';
   import { ChevronDown, ChevronLeft, ChevronRight, Settings } from 'lucide-svelte';
@@ -16,16 +15,12 @@
   const { paragraphs, chapter_name, chapter_number, novel_id } = $derived(data.chapter);
   const totalChapters = $derived(data.chapter_count);
 
-  // Reference to the form element
-  let progressForm: HTMLFormElement;
-
-  function saveProgress() {
-    if (progressForm) {
-      const formData = new FormData(progressForm);
-      const url = progressForm.action;
-
-      fetch(url, { method: 'POST', body: formData });
-    }
+  function saveProgress(lastChapterName: string, chapterNumber: number) {
+    const formData = new FormData();
+    formData.append('lastChapterName', lastChapterName);
+    formData.append('chapterNumber', chapterNumber.toString());
+    const url = `/${novel_id}/${chapterNumber}`;
+    fetch(url, { method: 'POST', body: formData });
   }
 
   let openSettingsDialog = $state(false);
@@ -52,6 +47,7 @@
     const result = await preloadData(nextChapterHref);
     if (result.type === 'loaded') {
       contents.push(result.data.chapter);
+      saveProgress(result.data.chapter.chapter_name, currentChapter);
     }
     return;
   }
@@ -152,11 +148,5 @@
         <span>You have caught up!</span>
       </div>
     {/if}
-
-    <!-- Hidden form to store progress values -->
-    <form class="hidden" method="post" use:enhance bind:this={progressForm}>
-      <input type="text" name="lastChapterName" value={chapter.chapter_name} />
-      <input type="text" name="chapterNumber" value={chapter.chapter_number} />
-    </form>
   {/each}
 </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { goto, preloadData } from '$app/navigation';
+  import { preloadData } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import LinkButton from '$lib/components/LinkButton.svelte';
   import { plainContentToParagraphs, scrollPage } from '$lib/utils';
