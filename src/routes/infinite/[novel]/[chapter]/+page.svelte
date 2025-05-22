@@ -1,7 +1,9 @@
 <script lang="ts">
   import { preloadData, pushState } from '$app/navigation';
+  import Button from '$lib/components/Button.svelte';
+  import LoadingPage from '$lib/components/LoadingPage.svelte';
   import { scrollPage } from '$lib/utils';
-  import { ChevronDown, ChevronLeft, ChevronRight, Settings } from 'lucide-svelte';
+  import { ChevronDown, ChevronLeft, ChevronRight, LoaderCircle, Settings } from 'lucide-svelte';
   import { tick } from 'svelte';
   import { innerHeight, scrollY } from 'svelte/reactivity/window';
 
@@ -34,8 +36,11 @@
   // svelte-ignore state_referenced_locally
   let contents = $state([chapter]);
 
+  let isLoading = $state(false);
+
   async function loadNextChapter() {
     await tick();
+    isLoading = true;
     currentChapter++;
 
     const nextChapterHref = `/infinite/${chapter.novel_id}/${currentChapter}`;
@@ -49,6 +54,7 @@
       contents.push(result.data.chapter);
       saveProgress(result.data.chapter.chapter_name, currentChapter);
     }
+    isLoading = false;
     return;
   }
 
@@ -148,5 +154,17 @@
         <span>You have caught up!</span>
       </div>
     {/if}
+
+    <Button onclick={loadNextChapter} class="my-4">
+      {#if isLoading}
+        <div class="animate-spin">
+          <LoaderCircle size={24} />
+        </div>
+      {:else}
+        Load Next Chapter
+      {/if}
+      Scrollable Height: {scrollableHeight}
+      Scroll Y: {scrollY.current}
+    </Button>
   {/each}
 </div>
