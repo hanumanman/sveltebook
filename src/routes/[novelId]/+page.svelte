@@ -89,6 +89,9 @@
       <div class="mt-6">
         <LinkButton href={`/${id}/1`}>Start Reading</LinkButton>
       </div>
+      <div class="mt-6">
+        <LinkButton href={`/infinite/${id}/1`}>Infinity and Beyond</LinkButton>
+      </div>
     </div>
   </div>
 </div>

@@ -42,22 +42,6 @@
     scrollPage('top');
   });
 
-  $effect(() => {
-    // When user scrolls to the bottom of the page, navigate to the next chapter
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = document.documentElement.clientHeight;
-
-      if (scrollTop + clientHeight >= scrollHeight - 5) {
-        if (hasNextChapter) {
-          goto(`/${novel_id}/${nextChapter}`);
-        }
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-  });
-
   let openSettingsDialog = $state(false);
   function toggleSettingsDialog() {
     openSettingsDialog = !openSettingsDialog;
