@@ -62,7 +62,7 @@
 
   $effect(() => {
     scrollableHeight = document.body.scrollHeight - innerHeight.current!;
-    if (scrollableHeight === scrollY.current) {
+    if (scrollableHeight - 20 < scrollY.current!) {
       loadNextChapter();
     }
   });
@@ -155,16 +155,12 @@
       </div>
     {/if}
 
-    <Button onclick={loadNextChapter} class="my-4">
-      {#if isLoading}
+    {#if isLoading}
+      <div class="w-full grid place-items-center my-4">
         <div class="animate-spin">
           <LoaderCircle size={24} />
         </div>
-      {:else}
-        Load Next Chapter
-      {/if}
-      Scrollable Height: {scrollableHeight}
-      Scroll Y: {scrollY.current}
-    </Button>
+      </div>
+    {/if}
   {/each}
 </div>
