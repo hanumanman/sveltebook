@@ -1,5 +1,5 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 /**
  * Converts a plain text string into an array of paragraphs.
@@ -19,14 +19,14 @@ import { twMerge } from 'tailwind-merge';
  * ```
  */
 export function plainContentToParagraphs(content: string): string[] {
-  return content.split('\n\n').filter(Boolean);
+  return content.split('\n\n').filter(Boolean)
 }
 
 export function scrollPage(pos: 'top' | 'bottom') {
   window.scrollTo({
     top: pos === 'top' ? 0 : document.body.scrollHeight,
     behavior: 'smooth'
-  });
+  })
 }
 
 /**
@@ -53,5 +53,5 @@ export function scrollPage(pos: 'top' | 'bottom') {
  * ```
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }

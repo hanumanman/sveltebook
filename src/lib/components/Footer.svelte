@@ -1,5 +1,5 @@
 <script>
-  import { Book } from 'lucide-svelte';
+  import { Book } from 'lucide-svelte'
 </script>
 
 <footer

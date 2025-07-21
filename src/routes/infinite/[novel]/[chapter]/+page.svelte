@@ -1,71 +1,71 @@
 <script lang="ts">
-  import { preloadData, pushState } from '$app/navigation';
-  import Button from '$lib/components/Button.svelte';
-  import LoadingPage from '$lib/components/LoadingPage.svelte';
-  import { scrollPage } from '$lib/utils';
-  import { ChevronDown, ChevronLeft, ChevronRight, LoaderCircle, Settings } from 'lucide-svelte';
-  import { tick } from 'svelte';
-  import { innerHeight, scrollY } from 'svelte/reactivity/window';
+  import { preloadData, pushState } from '$app/navigation'
+  import Button from '$lib/components/Button.svelte'
+  import LoadingPage from '$lib/components/LoadingPage.svelte'
+  import { scrollPage } from '$lib/utils'
+  import { ChevronDown, ChevronLeft, ChevronRight, LoaderCircle, Settings } from 'lucide-svelte'
+  import { tick } from 'svelte'
+  import { innerHeight, scrollY } from 'svelte/reactivity/window'
 
-  import PageSettingsDialog from '../../../[novelId]/[chapterId]/PageSettingsDialog.svelte';
-  import { pageSettingsStore, themes } from '../../../[novelId]/[chapterId]/pageSettingsStore';
-  import type { PageProps } from './$types';
+  import PageSettingsDialog from '../../../[novelId]/[chapterId]/PageSettingsDialog.svelte'
+  import { pageSettingsStore, themes } from '../../../[novelId]/[chapterId]/pageSettingsStore'
+  import type { PageProps } from './$types'
 
-  let { data }: PageProps = $props();
-  const { chapter } = $derived(data);
+  let { data }: PageProps = $props()
+  const { chapter } = $derived(data)
 
-  const { paragraphs, chapter_name, chapter_number, novel_id } = $derived(data.chapter);
-  const totalChapters = $derived(data.chapter_count);
+  const { paragraphs, chapter_name, chapter_number, novel_id } = $derived(data.chapter)
+  const totalChapters = $derived(data.chapter_count)
 
   function saveProgress(lastChapterName: string, chapterNumber: number) {
-    const formData = new FormData();
-    formData.append('lastChapterName', lastChapterName);
-    formData.append('chapterNumber', chapterNumber.toString());
-    const url = `/${novel_id}/${chapterNumber}`;
-    fetch(url, { method: 'POST', body: formData });
+    const formData = new FormData()
+    formData.append('lastChapterName', lastChapterName)
+    formData.append('chapterNumber', chapterNumber.toString())
+    const url = `/${novel_id}/${chapterNumber}`
+    fetch(url, { method: 'POST', body: formData })
   }
 
-  let openSettingsDialog = $state(false);
+  let openSettingsDialog = $state(false)
   function toggleSettingsDialog() {
-    openSettingsDialog = !openSettingsDialog;
+    openSettingsDialog = !openSettingsDialog
   }
 
   // svelte-ignore state_referenced_locally
-  let currentChapter = $state(chapter.chapter_number);
+  let currentChapter = $state(chapter.chapter_number)
 
   // svelte-ignore state_referenced_locally
-  let contents = $state([chapter]);
+  let contents = $state([chapter])
 
-  let isLoading = $state(false);
+  let isLoading = $state(false)
 
   async function loadNextChapter() {
-    await tick();
-    isLoading = true;
-    currentChapter++;
+    await tick()
+    isLoading = true
+    currentChapter++
 
-    const nextChapterHref = `/infinite/${chapter.novel_id}/${currentChapter}`;
+    const nextChapterHref = `/infinite/${chapter.novel_id}/${currentChapter}`
 
     pushState(nextChapterHref, {
       chapter: currentChapter
-    });
+    })
 
-    const result = await preloadData(nextChapterHref);
+    const result = await preloadData(nextChapterHref)
     if (result.type === 'loaded') {
-      contents.push(result.data.chapter);
-      saveProgress(result.data.chapter.chapter_name, currentChapter);
+      contents.push(result.data.chapter)
+      saveProgress(result.data.chapter.chapter_name, currentChapter)
     }
-    isLoading = false;
-    return;
+    isLoading = false
+    return
   }
 
-  let scrollableHeight = $state(0);
+  let scrollableHeight = $state(0)
 
   $effect(() => {
-    scrollableHeight = document.body.scrollHeight - innerHeight.current!;
+    scrollableHeight = document.body.scrollHeight - innerHeight.current!
     if (scrollableHeight - 20 < scrollY.current!) {
-      loadNextChapter();
+      loadNextChapter()
     }
-  });
+  })
 </script>
 
 <svelte:head>

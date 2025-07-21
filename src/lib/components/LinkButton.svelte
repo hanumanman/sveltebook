@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { cn } from '$lib/utils';
-  import type { Snippet } from 'svelte';
-  import type { HTMLAnchorAttributes } from 'svelte/elements';
+  import { cn } from '$lib/utils'
+  import type { Snippet } from 'svelte'
+  import type { HTMLAnchorAttributes } from 'svelte/elements'
 
   type LinkButtonProps = HTMLAnchorAttributes & {
-    children?: Snippet<[]>;
-  };
+    children?: Snippet<[]>
+  }
 
-  let { children, href = '/', class: className, ...props }: LinkButtonProps = $props();
+  let { children, href = '/', class: className, ...props }: LinkButtonProps = $props()
 </script>
 
 <a

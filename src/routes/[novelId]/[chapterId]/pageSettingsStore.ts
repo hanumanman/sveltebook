@@ -1,13 +1,13 @@
-import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
+import { browser } from '$app/environment'
+import { writable } from 'svelte/store'
 
 interface IPageSettings {
-  fontSize: number;
-  lineHeight: number;
-  theme: TTheme;
+  fontSize: number
+  lineHeight: number
+  theme: TTheme
 }
 
-export type TTheme = keyof typeof themes;
+export type TTheme = keyof typeof themes
 
 export const themes = {
   default: {
@@ -50,34 +50,34 @@ export const themes = {
     background: '#f9f9f9', // Light gray like e-readers
     color: '#444444' // Dark gray
   }
-} as const;
+} as const
 
 const defaultSettings: IPageSettings = {
   fontSize: 16,
   lineHeight: 1.5,
   theme: 'default'
-};
+}
 
 const getStoredSettings = (): IPageSettings => {
   if (browser) {
-    const storedSettings = localStorage.getItem('pageSettings');
+    const storedSettings = localStorage.getItem('pageSettings')
     if (storedSettings) {
-      return JSON.parse(storedSettings);
+      return JSON.parse(storedSettings)
     }
   }
-  return defaultSettings;
-};
+  return defaultSettings
+}
 
-const storedSettings = getStoredSettings();
+const storedSettings = getStoredSettings()
 
-export const pageSettingsStore = writable(storedSettings || defaultSettings);
+export const pageSettingsStore = writable(storedSettings || defaultSettings)
 
 if (storedSettings) {
-  pageSettingsStore.set(storedSettings);
+  pageSettingsStore.set(storedSettings)
 }
 
 pageSettingsStore.subscribe((value) => {
   if (browser) {
-    localStorage.setItem('pageSettings', JSON.stringify(value));
+    localStorage.setItem('pageSettings', JSON.stringify(value))
   }
-});
+})

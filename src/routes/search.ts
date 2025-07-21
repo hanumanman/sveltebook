@@ -1,5 +1,5 @@
-import type { INovel } from '$lib/server/db/queries/select';
-import fuzzy from 'fuzzy';
+import type { INovel } from '$lib/server/db/queries/select'
+import fuzzy from 'fuzzy'
 
 /**
  * Normalizes a string by:
@@ -19,7 +19,7 @@ export function getNormalizedString(str: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/Đ/g, 'D')
-    .replace(/đ/g, 'd');
+    .replace(/đ/g, 'd')
 }
 
 /**
@@ -36,45 +36,45 @@ export function getNormalizedString(str: string): string {
  * // Returns "Hello <span class="text-yellow-600">wor</span>ld!"
  */
 export function processString(original: string, bracketedString: string): string {
-  let result = '';
-  let bracketCount = 0;
+  let result = ''
+  let bracketCount = 0
 
   // Loop through the bracketed string
   for (let i = 0; i < bracketedString.length; i++) {
-    const char = bracketedString[i];
+    const char = bracketedString[i]
 
     // If the character is a bracket, add a bracket to the result
     if (char === '[') {
-      result += '[';
-      result += original[i - bracketCount];
-      result += ']';
-      bracketCount += 2;
-      i += 2;
+      result += '['
+      result += original[i - bracketCount]
+      result += ']'
+      bracketCount += 2
+      i += 2
     } else {
       // If the character is not a bracket, add the original character to the result
-      result += original[i - bracketCount];
+      result += original[i - bracketCount]
     }
   }
   // Return the processed string
   return result.replace(
     /\[([^\]]+)\]/g,
     (_match, p1) => `<span class="text-yellow-600">${p1}</span>`
-  );
+  )
 }
 
 const options = {
   pre: '[',
   post: ']'
-};
+}
 
 interface INovelResult extends INovel {
-  processedString: string;
-  highlightName: boolean;
+  processedString: string
+  highlightName: boolean
 }
 
 interface ISearchArgs {
-  searchTerm: string;
-  novels: INovel[];
+  searchTerm: string
+  novels: INovel[]
 }
 
 /**
@@ -92,40 +92,40 @@ export function searchHomepage({ searchTerm, novels }: ISearchArgs): INovelResul
   const nameResult = fuzzy.filter(getNormalizedString(searchTerm), novels, {
     ...options,
     extract: function (el): string {
-      return getNormalizedString(el.novel_name);
+      return getNormalizedString(el.novel_name)
     }
-  });
+  })
   const authorResult = fuzzy.filter(getNormalizedString(searchTerm), novels, {
     ...options,
     extract: function (el): string {
-      return getNormalizedString(el.novel_author);
+      return getNormalizedString(el.novel_author)
     }
-  });
+  })
 
   // Add explicit type annotation here
   const nameResults: INovelResult[] = nameResult.map((result) => ({
     ...result.original,
     processedString: processString(result.original.novel_name, result.string),
     highlightName: true
-  }));
+  }))
 
   // Add explicit type annotation here
   const authorResults: INovelResult[] = authorResult.map((result) => ({
     ...result.original,
     processedString: processString(result.original.novel_author, result.string),
     highlightName: false
-  }));
+  }))
 
-  const combinedResults: INovelResult[] = [...nameResults, ...authorResults];
+  const combinedResults: INovelResult[] = [...nameResults, ...authorResults]
 
   // Break down complex operations to help TypeScript
-  const novelIds: number[] = Array.from(new Set<number>(combinedResults.map((novel) => novel.id)));
+  const novelIds: number[] = Array.from(new Set<number>(combinedResults.map((novel) => novel.id)))
   const uniqueResults: INovelResult[] = novelIds
     .map((id) => {
-      const found = combinedResults.find((novel) => novel.id === id);
-      return found;
+      const found = combinedResults.find((novel) => novel.id === id)
+      return found
     })
-    .filter((novel): novel is INovelResult => Boolean(novel));
+    .filter((novel): novel is INovelResult => Boolean(novel))
 
-  return uniqueResults;
+  return uniqueResults
 }

@@ -1,21 +1,21 @@
 <script lang="ts">
-  import Button from '$lib/components/Button.svelte';
-  import { flip } from 'svelte/animate';
+  import Button from '$lib/components/Button.svelte'
+  import { flip } from 'svelte/animate'
 
-  import type { PageProps } from './$types';
-  import { searchHomepage } from './search';
+  import type { PageProps } from './$types'
+  import { searchHomepage } from './search'
 
-  let { data }: PageProps = $props();
-  const { novels } = $derived(data);
+  let { data }: PageProps = $props()
+  const { novels } = $derived(data)
 
-  let searchTerm = $state('');
+  let searchTerm = $state('')
 
   let results = $derived(
     searchHomepage({
       searchTerm,
       novels
     })
-  );
+  )
 </script>
 
 <svelte:head>

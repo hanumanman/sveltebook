@@ -1,50 +1,50 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
-  import { preloadData } from '$app/navigation';
-  import Button from '$lib/components/Button.svelte';
-  import LinkButton from '$lib/components/LinkButton.svelte';
-  import { plainContentToParagraphs, scrollPage } from '$lib/utils';
-  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte';
+  import { enhance } from '$app/forms'
+  import { preloadData } from '$app/navigation'
+  import Button from '$lib/components/Button.svelte'
+  import LinkButton from '$lib/components/LinkButton.svelte'
+  import { plainContentToParagraphs, scrollPage } from '$lib/utils'
+  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte'
 
-  import type { PageProps } from './$types';
-  import PageSettingsDialog from './PageSettingsDialog.svelte';
-  import { pageSettingsStore, themes } from './pageSettingsStore';
+  import type { PageProps } from './$types'
+  import PageSettingsDialog from './PageSettingsDialog.svelte'
+  import { pageSettingsStore, themes } from './pageSettingsStore'
 
-  let { data }: PageProps = $props();
-  const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter);
-  const prevChapter = $derived(chapter_number - 1);
-  const nextChapter = $derived(chapter_number + 1);
-  const paragraphs = $derived(plainContentToParagraphs(chapter_content));
+  let { data }: PageProps = $props()
+  const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter)
+  const prevChapter = $derived(chapter_number - 1)
+  const nextChapter = $derived(chapter_number + 1)
+  const paragraphs = $derived(plainContentToParagraphs(chapter_content))
 
-  const hasNextChapter = $derived(chapter_number < data.chapter_count);
-  const hasPrevChapter = $derived(prevChapter > 0);
+  const hasNextChapter = $derived(chapter_number < data.chapter_count)
+  const hasPrevChapter = $derived(prevChapter > 0)
 
   // Reference to the form element
-  let progressForm: HTMLFormElement;
+  let progressForm: HTMLFormElement
 
   function saveProgress() {
     if (progressForm) {
-      const formData = new FormData(progressForm);
-      const url = progressForm.action;
+      const formData = new FormData(progressForm)
+      const url = progressForm.action
 
-      fetch(url, { method: 'POST', body: formData });
+      fetch(url, { method: 'POST', body: formData })
     }
   }
 
   $effect(() => {
     if (hasNextChapter) {
-      preloadData(`/${novel_id}/${nextChapter}`);
+      preloadData(`/${novel_id}/${nextChapter}`)
     }
     // Save progress whenever the chapter changes
-    saveProgress();
+    saveProgress()
 
     // Scroll to the top of the page manually
-    scrollPage('top');
-  });
+    scrollPage('top')
+  })
 
-  let openSettingsDialog = $state(false);
+  let openSettingsDialog = $state(false)
   function toggleSettingsDialog() {
-    openSettingsDialog = !openSettingsDialog;
+    openSettingsDialog = !openSettingsDialog
   }
 </script>
 

@@ -1,4 +1,4 @@
-import { foreignKey, integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core';
+import { foreignKey, integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
 
 export const chaptersTable = sqliteTable(
   'chapters',
@@ -16,10 +16,10 @@ export const chaptersTable = sqliteTable(
     // Add unique constraint
     unique().on(table.novel_id, table.chapter_number)
   ]
-);
+)
 
-export type TInsertChapter = typeof chaptersTable.$inferInsert;
-export type TSelectChapter = typeof chaptersTable.$inferSelect;
+export type TInsertChapter = typeof chaptersTable.$inferInsert
+export type TSelectChapter = typeof chaptersTable.$inferSelect
 
 export const novelsTable = sqliteTable('novels', {
   id: integer('id').primaryKey(),
@@ -28,9 +28,9 @@ export const novelsTable = sqliteTable('novels', {
   novel_author: text('novel_author').notNull(),
   novel_genre: text('novel_genre').notNull(),
   novel_image_link: text('novel_image_link')
-});
-export type TInsertNovel = typeof novelsTable.$inferInsert;
-export type TSelectNovel = typeof novelsTable.$inferSelect;
+})
+export type TInsertNovel = typeof novelsTable.$inferInsert
+export type TSelectNovel = typeof novelsTable.$inferSelect
 
 export const usersTable = sqliteTable('users', {
   id: integer('id').primaryKey(),
@@ -38,9 +38,9 @@ export const usersTable = sqliteTable('users', {
   user_email: text('user_email'),
   google_id: integer('google_id').notNull(),
   image: text('image')
-});
-export type TInsertUser = typeof usersTable.$inferInsert;
-export type TSelectUser = typeof usersTable.$inferSelect;
+})
+export type TInsertUser = typeof usersTable.$inferInsert
+export type TSelectUser = typeof usersTable.$inferSelect
 
 export const sessionTable = sqliteTable('sessions', {
   id: text('id').primaryKey(),
@@ -48,9 +48,9 @@ export const sessionTable = sqliteTable('sessions', {
     .notNull()
     .references(() => usersTable.id),
   expires: integer('expires', { mode: 'timestamp' }).notNull()
-});
-export type TInsertSession = typeof sessionTable.$inferInsert;
-export type TSelectSession = typeof sessionTable.$inferSelect;
+})
+export type TInsertSession = typeof sessionTable.$inferInsert
+export type TSelectSession = typeof sessionTable.$inferSelect
 
 export const progressTable = sqliteTable(
   'progress',
@@ -72,7 +72,7 @@ export const progressTable = sqliteTable(
       foreignColumns: [chaptersTable.novel_id, chaptersTable.chapter_number]
     })
   ]
-);
+)
 
-export type TInsertProgress = typeof progressTable.$inferInsert;
-export type TSelectProgress = typeof progressTable.$inferSelect;
+export type TInsertProgress = typeof progressTable.$inferInsert
+export type TSelectProgress = typeof progressTable.$inferSelect

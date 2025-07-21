@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { navigating } from '$app/state';
-  import Header from '$lib/components/Header.svelte';
-  import LoadingPage from '$lib/components/LoadingPage.svelte';
+  import { navigating } from '$app/state'
+  import Header from '$lib/components/Header.svelte'
+  import LoadingPage from '$lib/components/LoadingPage.svelte'
 
-  import '../app.css';
-  import Footer from '../lib/components/Footer.svelte';
-  import type { LayoutProps } from './$types';
+  import '../app.css'
+  import Footer from '../lib/components/Footer.svelte'
+  import type { LayoutProps } from './$types'
 
-  let { children, data }: LayoutProps = $props();
-  const { session, user } = $derived(data);
+  let { children, data }: LayoutProps = $props()
+  const { session, user } = $derived(data)
 
-  let isNavigating = $derived(!!navigating.complete);
+  let isNavigating = $derived(!!navigating.complete)
 </script>
 
 <Header {session} {user} />

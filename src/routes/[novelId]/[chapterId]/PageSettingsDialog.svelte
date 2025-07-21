@@ -1,20 +1,20 @@
 <script lang="ts">
-  import Button from '$lib/components/Button.svelte';
+  import Button from '$lib/components/Button.svelte'
 
-  import { pageSettingsStore, themes } from './pageSettingsStore';
+  import { pageSettingsStore, themes } from './pageSettingsStore'
 
   interface Props {
-    open: boolean;
-    toggleDialogFn: () => void;
+    open: boolean
+    toggleDialogFn: () => void
   }
 
-  let { open, toggleDialogFn }: Props = $props();
+  let { open, toggleDialogFn }: Props = $props()
 
   //Convert themes to an array
   const themesArray = Object.entries(themes).map(([key, value]) => ({
     key,
     value
-  }));
+  }))
 </script>
 
 <!-- NOTE: This component must be placed at the top of the page -->
@@ -59,7 +59,7 @@
               class="w-20 flex aspect-square"
               style="color:{value.color}; background-color:{value.background};"
               onclick={() => {
-                $pageSettingsStore.theme = key as keyof typeof themes;
+                $pageSettingsStore.theme = key as keyof typeof themes
               }}
             >
               A
@@ -88,7 +88,7 @@
               fontSize: 16,
               lineHeight: 1.5,
               theme: 'default'
-            };
+            }
           }}>Reset</Button
         >
       </div>

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import LinkButton from '$lib/components/LinkButton.svelte';
-  import ProgressBar from '$lib/components/ProgressBar.svelte';
+  import LinkButton from '$lib/components/LinkButton.svelte'
+  import ProgressBar from '$lib/components/ProgressBar.svelte'
 
-  import type { PageProps } from './$types';
+  import type { PageProps } from './$types'
 
-  let { data }: PageProps = $props();
-  const { novel, progress } = $derived(data);
+  let { data }: PageProps = $props()
+  const { novel, progress } = $derived(data)
   const {
     chapter_count,
     id,
@@ -14,14 +14,14 @@
     novel_genre,
     novel_image_link,
     novel_name
-  } = $derived(novel);
+  } = $derived(novel)
 
-  const genres: string[] = $derived(novel_genre.split(','));
+  const genres: string[] = $derived(novel_genre.split(','))
   const percent: number = $derived(
     !progress?.last_chapter_number
       ? 0
       : Math.round((progress?.last_chapter_number / chapter_count) * 100)
-  );
+  )
 </script>
 
 <svelte:head>

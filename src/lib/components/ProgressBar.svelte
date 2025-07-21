@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { cn } from '$lib/utils';
+  import { cn } from '$lib/utils'
 
   type Props = {
-    value: number;
-    maxValue: number;
-    class?: string;
-  };
+    value: number
+    maxValue: number
+    class?: string
+  }
 
-  let { value, maxValue, class: className }: Props = $props();
-  const percentValue = Math.round((value / maxValue) * 100);
+  let { value, maxValue, class: className }: Props = $props()
+  const percentValue = Math.round((value / maxValue) * 100)
 </script>
 
 <!-- A Progress Bar component that displays the progress of a task. -->

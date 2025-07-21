@@ -1,6 +1,6 @@
 <script>
-  import { page } from '$app/state';
-  import Button from '$lib/components/Button.svelte';
+  import { page } from '$app/state'
+  import Button from '$lib/components/Button.svelte'
 </script>
 
 <div

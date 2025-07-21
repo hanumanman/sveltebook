@@ -47,6 +47,7 @@ Sveltebook is a web application designed for reading novels online. It provides 
    ```
 
 3. Start the development server
+
    ```bash
    bun run dev
    # or start the server and open the app in a new browser tab
