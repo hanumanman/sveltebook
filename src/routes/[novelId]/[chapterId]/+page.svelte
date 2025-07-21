@@ -8,6 +8,7 @@
 
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
+  import TTSButton from './TTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
   let { data }: PageProps = $props()
@@ -79,6 +80,7 @@
 
     <!-- Page Controls -->
     <div class="flex justify-end gap-2 pt-3">
+      <TTSButton />
       <button
         onclick={toggleSettingsDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
