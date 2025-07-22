@@ -4,7 +4,14 @@
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
-  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte'
+  import {
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    Settings,
+    Speaker
+  } from 'lucide-svelte'
 
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
@@ -47,6 +54,28 @@
   function toggleSettingsDialog() {
     openSettingsDialog = !openSettingsDialog
   }
+
+  async function getStream() {
+    const res = await fetch('/api/stream', {
+      method: 'POST',
+      body: JSON.stringify({ text: chapter_content })
+    })
+
+    const reader = res.body?.getReader()
+    const decoder = new TextDecoder('utf-8')
+
+    while (true) {
+      if (!reader) {
+        break
+      }
+      const { value, done } = await reader.read()
+      if (done) {
+        break
+      }
+      const chunkOfText = decoder.decode(value)
+      console.log(chunkOfText)
+    }
+  }
 </script>
 
 <svelte:head>
@@ -83,6 +112,13 @@
       {#await data.ttsData then ttsData}
         <TTSButton {ttsData} />
       {/await}
+      <button
+        onclick={getStream}
+        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+        title="Open Settings Dialog"
+      >
+        <Speaker size={20} />
+      </button>
       <button
         onclick={toggleSettingsDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
