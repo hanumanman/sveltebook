@@ -1,51 +1,47 @@
 <script lang="ts">
-  import { TTSAudioPlayer, type TTSData } from '$lib/services/tts.svelte'
+  import { TTSPlayer } from '$lib/services/ttsPlayer.svelte'
+  import { Loader2, Play, Volume2 } from 'lucide-svelte'
   import { onMount } from 'svelte'
 
   interface Props {
-    ttsData: TTSData
+    text: string
   }
 
-  let { ttsData }: Props = $props()
+  let { text }: Props = $props()
 
-  let tts: TTSAudioPlayer | null = $state(null)
+  let tts: TTSPlayer | null = $state(null)
 
   onMount(async () => {
-    try {
-      tts = new TTSAudioPlayer(ttsData)
-    } catch (error) {
-      console.error(error)
-      throw new Error('Failed to initialize TTS service')
-    }
+    tts = new TTSPlayer()
   })
 
-  function handleClick() {
+  async function handleClick() {
     if (!tts) return
     switch (tts.state) {
-      case 'idle':
-      case 'stopped':
-        tts.speak()
+      case 'loading':
         break
-      case 'speaking':
-        tts.pause()
+      case 'playing':
+        tts.stop()
+        break
+      case 'stopped':
+        await tts.stream(text)
         break
       case 'paused':
-        tts.resume()
+        await tts.stream(text)
         break
     }
   }
 </script>
 
-{#if tts?.isSupported()}
-  <button
-    onclick={handleClick}
-    class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    <!-- {#if tts.state === 'speaking'} -->
-    <!--   <Pause size={20} /> -->
-    <!-- {:else} -->
-    <!--   <Play size={20} /> -->
-    <!-- {/if} -->
-    {tts.state}
-  </button>
-{/if}
+<button
+  onclick={handleClick}
+  class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  {#if tts?.state === 'playing'}
+    <Volume2 class="animate-pulse" size={20} />
+  {:else if tts?.state === 'loading'}
+    <Loader2 class="animate-spin" size={20} />
+  {:else}
+    <Play size={20} />
+  {/if}
+</button>

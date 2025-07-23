@@ -2,3 +2,5 @@
 - [x] Consume stream in client
 - [x] Convert TTS data to stream
 - [ ] Handle audio stream in client
+  - [ ] MediaSource
+  - [ ] SourceBuffer

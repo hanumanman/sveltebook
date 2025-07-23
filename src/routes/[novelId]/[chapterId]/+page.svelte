@@ -4,14 +4,7 @@
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
-  import {
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    ChevronUp,
-    Settings,
-    Speaker
-  } from 'lucide-svelte'
+  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte'
 
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
@@ -43,38 +36,13 @@
     if (hasNextChapter) {
       preloadData(`/${novel_id}/${nextChapter}`)
     }
-    // Save progress whenever the chapter changes
     saveProgress()
-
-    // Scroll to the top of the page manually
     scrollPage('top')
   })
 
   let openSettingsDialog = $state(false)
   function toggleSettingsDialog() {
     openSettingsDialog = !openSettingsDialog
-  }
-
-  async function getStream() {
-    const res = await fetch('/api/stream', {
-      method: 'POST',
-      body: JSON.stringify({ text: chapter_content })
-    })
-
-    const reader = res.body?.getReader()
-    const decoder = new TextDecoder('utf-8')
-
-    while (true) {
-      if (!reader) {
-        break
-      }
-      const { value, done } = await reader.read()
-      if (done) {
-        break
-      }
-      const chunkOfText = decoder.decode(value)
-      console.log(chunkOfText)
-    }
   }
 </script>
 
@@ -109,16 +77,8 @@
 
     <!-- Page Controls -->
     <div class="flex justify-end gap-2 pt-3">
-      {#await data.ttsData then ttsData}
-        <TTSButton {ttsData} />
-      {/await}
-      <button
-        onclick={getStream}
-        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
-        title="Open Settings Dialog"
-      >
-        <Speaker size={20} />
-      </button>
+      <TTSButton text={chapter_content} />
+
       <button
         onclick={toggleSettingsDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"

@@ -1,11 +1,10 @@
 import { saveProgress } from '$lib/server/db/queries/inserts'
 import { getChapter } from '$lib/server/db/queries/select'
-import type { TTSData } from '$lib/services/tts.svelte'
 import { error } from '@sveltejs/kit'
 
 import type { Actions, PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ params, parent, fetch }) => {
+export const load: PageServerLoad = async ({ params, parent }) => {
   const chapterId = parseInt(params.chapterId)
   const novelId = parseInt(params.novelId)
   if (isNaN(chapterId) || isNaN(novelId)) {
@@ -21,18 +20,9 @@ export const load: PageServerLoad = async ({ params, parent, fetch }) => {
     novel: { chapter_count }
   } = await parent()
 
-  async function getTTSData(): Promise<TTSData> {
-    return fetch('/api/tts', {
-      method: 'POST',
-      // TODO: Use stream to handle TTS
-      body: JSON.stringify({ text: chapter.chapter_content.split('.')[0] })
-    }).then((res) => res.json())
-  }
-
   return {
     chapter,
-    chapter_count,
-    ttsData: await getTTSData()
+    chapter_count
   }
 }
 
