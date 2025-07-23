@@ -1,7 +1,7 @@
 <script lang="ts">
   import { TTSPlayer } from '$lib/services/ttsPlayer.svelte'
   import { Loader2, Play, Volume2 } from 'lucide-svelte'
-  import { onMount } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
 
   interface Props {
     text: string
@@ -31,6 +31,12 @@
         break
     }
   }
+
+  onDestroy(() => {
+    if (tts) {
+      tts.destroy()
+    }
+  })
 </script>
 
 <button
