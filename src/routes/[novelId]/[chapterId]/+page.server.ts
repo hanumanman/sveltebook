@@ -20,11 +20,14 @@ export const load: PageServerLoad = async ({ params, parent }) => {
     novel: { chapter_count }
   } = await parent()
 
-  return { chapter, chapter_count }
+  return {
+    chapter,
+    chapter_count
+  }
 }
 
 export const actions: Actions = {
-  default: async (event) => {
+  progress: async (event) => {
     const formData = await event.request.formData()
     const lastChapterName = formData.get('lastChapterName') as string
     const chapterNumber = parseInt(formData.get('chapterNumber') as string)

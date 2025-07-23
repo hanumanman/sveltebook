@@ -8,6 +8,7 @@
 
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
+  import TTSButton from './TTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
   let { data }: PageProps = $props()
@@ -35,10 +36,7 @@
     if (hasNextChapter) {
       preloadData(`/${novel_id}/${nextChapter}`)
     }
-    // Save progress whenever the chapter changes
     saveProgress()
-
-    // Scroll to the top of the page manually
     scrollPage('top')
   })
 
@@ -79,6 +77,8 @@
 
     <!-- Page Controls -->
     <div class="flex justify-end gap-2 pt-3">
+      <TTSButton text={chapter_content} />
+
       <button
         onclick={toggleSettingsDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
@@ -164,7 +164,7 @@
 </div>
 
 <!-- Hidden form to store progress values -->
-<form class="hidden" method="post" use:enhance bind:this={progressForm}>
+<form action="?/progress" class="hidden" method="POST" use:enhance bind:this={progressForm}>
   <input type="text" name="lastChapterName" value={chapter_name} />
   <input type="text" name="chapterNumber" value={chapter_number} />
 </form>
