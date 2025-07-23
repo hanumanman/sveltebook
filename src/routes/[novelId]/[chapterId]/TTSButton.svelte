@@ -21,13 +21,13 @@
       case 'loading':
         break
       case 'playing':
-        tts.stop()
+        tts.pause()
         break
       case 'stopped':
         await tts.stream(text)
         break
       case 'paused':
-        await tts.stream(text)
+        tts.resume()
         break
     }
   }
