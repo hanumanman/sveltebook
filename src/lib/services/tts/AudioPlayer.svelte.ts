@@ -6,7 +6,15 @@ type PlaybackState = AudioContextState | 'loading'
  * This pattern is crucial because some browsers limit the number of AudioContexts
  * that can be created. A singleton ensures we use only one.
  * @example
- * // TODO: Add example usage
+ * // You can create a function to handle user interaction, like a click.
+ * // Browsers require a user gesture to start the AudioContext.
+ * async function playMySound() {
+ *   const player = AudioPlayer.getInstance()
+ *   // It's a good practice to resume the context on a user gesture.
+ *   await player.resumeContext()
+ *   // Read aloud. Replace with your text
+ *   await player.playAudio('Hello con cho 🐶')
+ * }
  */
 export class AudioPlayer {
   private static instance: AudioPlayer | null = null
@@ -77,21 +85,3 @@ export class AudioPlayer {
     return this.audioContext.state
   }
 }
-
-/* --- HOW TO USE ---
-
-You can create a function to handle user interaction, like a click.
-Browsers require a user gesture to start the AudioContext.
-async function playMySound() {
-  const player = AudioPlayer.getInstance()
-
-  // It's a good practice to resume the context on a user gesture.
-  await player.resumeContext()
-
-  // Read aloud. Replace with your text
-  await player.playAudio('Hello con cho 🐶')
-}
-
-You can access the same instance from anywhere in your app:
-const anotherInstance = AudioPlayer.getInstance()
-console.log(AudioPlayer.getInstance() === anotherInstance) // This will log: true */
