@@ -35,7 +35,6 @@ export async function GET(event: RequestEvent): Promise<Response> {
   const googleUserId = claims.sub
   const username = claims.name
 
-  // TODO: Replace this with your own DB query.
   const existingUser = await getUserFromGoogleId(googleUserId)
 
   if (existingUser !== null) {
