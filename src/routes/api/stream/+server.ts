@@ -36,7 +36,7 @@ export const POST: RequestHandler = async ({ request }) => {
     .map((s) => s.trim().replaceAll('"', ''))
     .filter(Boolean)
 
-  const stream = new ReadableStream({
+  const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       for (const sentence of sentences) {
         const audioBuffer = await synthesizeSpeech(sentence)

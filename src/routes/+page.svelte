@@ -46,15 +46,20 @@
         />
         <div class="p-4">
           {#if result?.highlightName}
-            <h2 class="mb-2 text-xl font-semibold text-gray-300 line-clamp-2 h-14">
-              {@html result.processedString}
+            <h2
+              class="mb-2 text-xl font-semibold text-gray-300 line-clamp-2 h-14"
+              data-html={result.processedString}
+            >
+              {result.processedString}
             </h2>
             <p class="mb-1 text-sm font-medium text-gray-400">{result.novel_author}</p>
           {:else}
             <h2 class="mb-2 text-xl font-semibold text-gray-300 line-clamp-2 h-14">
               {result.novel_name}
             </h2>
-            <p class="mb-1 text-sm font-medium text-gray-400">{@html result.processedString}</p>
+            <p class="mb-1 text-sm font-medium text-gray-400" data-html={result.processedString}>
+              {result.processedString}
+            </p>
           {/if}
 
           <p class="mb-3 line-clamp-3 text-sm text-gray-300">{result.novel_description}</p>

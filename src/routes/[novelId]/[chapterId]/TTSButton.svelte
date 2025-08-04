@@ -17,6 +17,9 @@
 
   async function handleClick() {
     if (!tts) return
+
+    await tts.resumeContext()
+
     switch (tts.state) {
       case 'loading':
         break
