@@ -2,6 +2,7 @@
   import { navigating } from '$app/state'
   import Header from '$lib/components/Header.svelte'
   import LoadingPage from '$lib/components/LoadingPage.svelte'
+  import { setAudioPlayerContext } from '$lib/services/AudioPlayer.svelte'
 
   import '../app.css'
   import Footer from '../lib/components/Footer.svelte'
@@ -9,6 +10,7 @@
 
   let { children, data }: LayoutProps = $props()
   const { session, user } = $derived(data)
+  setAudioPlayerContext()
 
   let isNavigating = $derived(!!navigating.complete)
 </script>

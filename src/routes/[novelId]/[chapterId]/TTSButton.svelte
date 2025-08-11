@@ -1,41 +1,29 @@
 <script lang="ts">
-  import { TTSPlayer } from '$lib/services/ttsPlayer.svelte'
-  import { Loader2, Play, Volume2 } from 'lucide-svelte'
-  import { onDestroy, onMount } from 'svelte'
+  import { getAudioPlayerContext } from '$lib/services/AudioPlayer.svelte'
+  import { onDestroy } from 'svelte'
 
   interface Props {
     text: string
   }
 
-  let { text }: Props = $props()
-
-  let tts: TTSPlayer | null = $state(null)
-
-  onMount(async () => {
-    tts = new TTSPlayer()
-  })
+  let { text: _text }: Props = $props()
+  const tts = getAudioPlayerContext()
 
   async function handleClick() {
-    if (!tts) return
-    switch (tts.state) {
-      case 'loading':
-        break
+    // if (!tts) return
+    switch (tts.playbackState) {
       case 'playing':
-        tts.pause()
+        tts.stop()
         break
       case 'stopped':
-        await tts.stream(text)
-        break
-      case 'paused':
-        tts.resume()
+        await tts.play()
         break
     }
   }
 
   onDestroy(() => {
-    if (tts) {
-      tts.destroy()
-    }
+    console.log('destroy')
+    tts.destroy()
   })
 </script>
 
@@ -43,11 +31,13 @@
   onclick={handleClick}
   class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
 >
-  {#if tts?.state === 'playing'}
-    <Volume2 class="animate-pulse" size={20} />
-  {:else if tts?.state === 'loading'}
-    <Loader2 class="animate-spin" size={20} />
-  {:else}
-    <Play size={20} />
-  {/if}
+  <!-- {#if tts?.state === 'playing'} -->
+  <!--   <Volume2 class="animate-pulse" size={20} /> -->
+  <!-- {:else if tts?.state === 'loading'} -->
+  <!--   <Loader2 class="animate-spin" size={20} /> -->
+  <!-- {:else} -->
+  <!--   <Play size={20} /> -->
+  <!-- {/if} -->
+  <!-- <Play size={20} /> -->
+  {tts.playbackState}
 </button>
