@@ -32,8 +32,10 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const sentences = text
+    .replaceAll('...', ' ')
+    .replaceAll('"', '')
     .split('.')
-    .map((s) => s.trim().replaceAll('"', ''))
+    .map((s) => s.trim())
     .filter(Boolean)
 
   const stream = new ReadableStream({
