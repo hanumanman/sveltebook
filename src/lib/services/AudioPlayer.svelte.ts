@@ -1,8 +1,4 @@
-import { getContext, setContext } from 'svelte'
-
 type PlaybackState = 'playing' | 'stopped' | 'loading'
-
-const AUDIO_PLAYER_KEY = Symbol('audioPlayer')
 
 class AudioPlayer {
   private static instance: AudioPlayer | null = null
@@ -155,21 +151,5 @@ class AudioPlayer {
   }
 }
 
-function setAudioPlayerContext(): AudioPlayer {
-  const audioPlayer = AudioPlayer.getInstance()
-  setContext<AudioPlayer>(AUDIO_PLAYER_KEY, audioPlayer)
-  return audioPlayer
-}
-
-function getAudioPlayerContext(): AudioPlayer {
-  const audioPlayer = getContext<AudioPlayer>(AUDIO_PLAYER_KEY)
-  if (!audioPlayer) {
-    throw new Error(
-      'AudioPlayer context not found. Make sure to call setAudioPlayerContext() in a parent component.'
-    )
-  }
-  return audioPlayer
-}
-
-export { AudioPlayer, getAudioPlayerContext, setAudioPlayerContext }
+export { AudioPlayer }
 export type { PlaybackState }

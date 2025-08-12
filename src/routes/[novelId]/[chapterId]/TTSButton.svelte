@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    AudioPlayer,
-    type PlaybackState,
-    getAudioPlayerContext
-  } from '$lib/services/AudioPlayer.svelte'
+  import { AudioPlayer, type PlaybackState } from '$lib/services/AudioPlayer.svelte'
   import { onDestroy, onMount } from 'svelte'
 
   interface Props {
@@ -11,21 +7,8 @@
   }
 
   let { text }: Props = $props()
-  let tts: AudioPlayer | null = $state(null)
+  const tts = AudioPlayer.getInstance()
   let playbackState: PlaybackState = $state('uninit')
-
-  onMount(() => {
-    // TODO: Maybe should not set context on layout. Maybe should bnot use context at all? maybe should just manage AudioPlayer onMount and onDestroy
-    if (tts) tts.destroy()
-    tts = getAudioPlayerContext()
-    playbackState = tts.playbackState
-  })
-
-  $effect(() => {
-    if (tts) {
-      playbackState = tts.playbackState
-    }
-  })
 
   async function handleClick() {
     if (!tts) return
