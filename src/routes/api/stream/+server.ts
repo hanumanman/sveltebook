@@ -11,7 +11,7 @@ async function synthesizeSpeech(text: string): Promise<Buffer<ArrayBufferLike>> 
     input: { text },
     voice: {
       languageCode: 'vi-VN',
-      name: 'vi-VN-Chirp3-HD-Laomedeia'
+      name: 'vi-VN-Standard-A'
     },
     audioConfig: {
       audioEncoding: 'MP3'
