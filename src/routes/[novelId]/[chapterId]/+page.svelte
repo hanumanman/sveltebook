@@ -13,6 +13,7 @@
 
   let { data }: PageProps = $props()
   const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter)
+  const last_chapter_number = $derived(data.progress?.last_chapter_number)
   const prevChapter = $derived(chapter_number - 1)
   const nextChapter = $derived(chapter_number + 1)
   const paragraphs = $derived(plainContentToParagraphs(chapter_content))
@@ -165,6 +166,7 @@
 
 <!-- Hidden form to store progress values -->
 <form action="?/progress" class="hidden" method="POST" use:enhance bind:this={progressForm}>
-  <input type="text" name="lastChapterName" value={chapter_name} />
+  <input type="text" name="lastChapterNumber" value={last_chapter_number} />
+  <input type="text" name="chapterName" value={chapter_name} />
   <input type="text" name="chapterNumber" value={chapter_number} />
 </form>

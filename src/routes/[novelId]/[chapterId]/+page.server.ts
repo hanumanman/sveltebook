@@ -17,24 +17,31 @@ export const load: PageServerLoad = async ({ params, parent }) => {
   }
 
   const {
-    novel: { chapter_count }
+    novel: { chapter_count },
+    progress
   } = await parent()
 
   return {
     chapter,
-    chapter_count
+    chapter_count,
+    progress
   }
 }
 
 export const actions: Actions = {
   progress: async (event) => {
     const formData = await event.request.formData()
-    const lastChapterName = formData.get('lastChapterName') as string
+    const lastChapterNumber = parseInt(formData.get('lastChapterNumber') as string)
+    const chapterName = formData.get('chapterName') as string
     const chapterNumber = parseInt(formData.get('chapterNumber') as string)
+
+    if (isNaN(lastChapterNumber) || lastChapterNumber >= chapterNumber) {
+      return
+    }
     const novelId = parseInt(event.params.novelId)
     const userId = event.locals.user?.id
     if (!isNaN(novelId) && !isNaN(chapterNumber) && userId) {
-      await saveProgress(userId, novelId, chapterNumber, lastChapterName)
+      await saveProgress(userId, novelId, chapterNumber, chapterName)
     }
   }
 }
