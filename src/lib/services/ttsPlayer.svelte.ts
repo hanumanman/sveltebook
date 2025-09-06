@@ -6,7 +6,6 @@ class AudioManager {
   private ctx: AudioContext
   private currentPlayer: TTSPlayer | null = null
   private globalState: TTSState = 'stopped'
-
   private constructor() {
     this.ctx = new AudioContext()
   }
