@@ -87,7 +87,7 @@
   onMount(() => {
     if (!browser) return
     if (autoplay) {
-      tts.play(chapter_content.split('.')[0], gotoNextPage)
+      tts.play(chapter_content)
     }
   })
 
