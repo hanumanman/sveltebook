@@ -1,6 +1,7 @@
 <script lang="ts">
+  import { browser } from '$app/environment'
   import { enhance } from '$app/forms'
-  import { preloadData } from '$app/navigation'
+  import { goto, preloadData } from '$app/navigation'
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
   import TextReader from '$lib/services/textReader.svelte'
@@ -10,14 +11,14 @@
     ChevronLeft,
     ChevronRight,
     ChevronUp,
+    Play,
     Settings,
-    StopCircle
+    Volume2
   } from 'lucide-svelte'
-  import { onDestroy } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
 
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
-  import TTSButton from './TTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
   let { data }: PageProps = $props()
@@ -55,25 +56,40 @@
     openSettingsDialog = !openSettingsDialog
   }
   const tts = TextReader.getInstance()
-  function handleStop() {
-    tts.stop()
+
+  function gotoNextPage() {
+    goto(`/${novel_id}/${nextChapter}`)
   }
+
   function handleClick() {
     switch (tts.getState) {
       case 'paused':
         tts.resume()
         break
-
       case 'playing':
         tts.pause()
         break
       case 'stopped':
-        tts.play(chapter_content)
+        tts.play(chapter_content.split('.')[0], gotoNextPage)
         break
       default:
         break
     }
   }
+
+  let autoplay = $state(browser ? localStorage.getItem('autoplay') === 'true' : false)
+
+  $effect(() => {
+    if (!browser) return
+    localStorage.setItem('autoplay', autoplay.toString())
+  })
+
+  onMount(() => {
+    if (!browser) return
+    if (autoplay) {
+      tts.play(chapter_content.split('.')[0], gotoNextPage)
+    }
+  })
 
   onDestroy(() => {
     tts.stop()
@@ -111,21 +127,22 @@
 
     <!-- Page Controls -->
     <div class="flex justify-end gap-2 pt-3">
-      <button
-        onclick={handleStop}
-        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
-        title="Test btn"
-      >
-        <StopCircle size={20} />
-      </button>
+      <label class="flex gap-1 items-center">
+        <input type="checkbox" bind:checked={autoplay} />
+        Autoplay
+      </label>
+
       <button
         onclick={handleClick}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
-        title="Test btn"
+        title="Play button"
       >
-        {tts.getState}
+        {#if tts?.getState === 'playing'}
+          <Volume2 class="animate-pulse" size={20} />
+        {:else}
+          <Play size={20} />
+        {/if}
       </button>
-      <TTSButton text={chapter_content} />
 
       <button
         onclick={toggleSettingsDialog}

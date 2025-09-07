@@ -19,7 +19,7 @@ class TextReader {
     return this.state
   }
 
-  play = (text: string) => {
+  play = (text: string, onendedCallback?: () => void) => {
     this.synth = window.speechSynthesis
     this.synth.onvoiceschanged = () => {
       const voices = this.synth?.getVoices()
@@ -35,12 +35,18 @@ class TextReader {
 
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.voice = this.voice
+      if (onendedCallback) {
+        utterance.onend = onendedCallback
+      }
       this.synth?.speak(utterance)
     }
 
     if (this.voice) {
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.voice = this.voice
+      if (onendedCallback) {
+        utterance.onend = onendedCallback
+      }
       this.synth?.speak(utterance)
     }
     this.state = 'playing'
