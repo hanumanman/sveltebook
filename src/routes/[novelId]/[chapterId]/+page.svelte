@@ -5,7 +5,15 @@
   import LinkButton from '$lib/components/LinkButton.svelte'
   import TextReader from '$lib/services/textReader.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
-  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte'
+  import {
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    Settings,
+    StopCircle
+  } from 'lucide-svelte'
+  import { onDestroy } from 'svelte'
 
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
@@ -47,22 +55,29 @@
     openSettingsDialog = !openSettingsDialog
   }
   const tts = TextReader.getInstance()
+  function handleStop() {
+    tts.stop()
+  }
   function handleClick() {
     switch (tts.getState) {
       case 'paused':
-        tts.play()
+        tts.resume()
         break
 
       case 'playing':
         tts.pause()
         break
       case 'stopped':
-        tts.play()
+        tts.play(chapter_content)
         break
       default:
         break
     }
   }
+
+  onDestroy(() => {
+    tts.stop()
+  })
 </script>
 
 <svelte:head>
@@ -96,6 +111,13 @@
 
     <!-- Page Controls -->
     <div class="flex justify-end gap-2 pt-3">
+      <button
+        onclick={handleStop}
+        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+        title="Test btn"
+      >
+        <StopCircle size={20} />
+      </button>
       <button
         onclick={handleClick}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
