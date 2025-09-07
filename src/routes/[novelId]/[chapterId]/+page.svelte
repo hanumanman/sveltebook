@@ -70,7 +70,7 @@
         tts.pause()
         break
       case 'stopped':
-        tts.play(chapter_content.split('.')[0], gotoNextPage)
+        tts.play(chapter_content, gotoNextPage)
         break
       default:
         break
