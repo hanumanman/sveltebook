@@ -3,6 +3,7 @@
   import { preloadData } from '$app/navigation'
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
+  import TextReader from '$lib/services/textReader.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
   import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte'
 
@@ -45,6 +46,23 @@
   function toggleSettingsDialog() {
     openSettingsDialog = !openSettingsDialog
   }
+  const tts = TextReader.getInstance()
+  function handleClick() {
+    switch (tts.getState) {
+      case 'paused':
+        tts.play()
+        break
+
+      case 'playing':
+        tts.pause()
+        break
+      case 'stopped':
+        tts.play()
+        break
+      default:
+        break
+    }
+  }
 </script>
 
 <svelte:head>
@@ -78,6 +96,13 @@
 
     <!-- Page Controls -->
     <div class="flex justify-end gap-2 pt-3">
+      <button
+        onclick={handleClick}
+        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+        title="Test btn"
+      >
+        {tts.getState}
+      </button>
       <TTSButton text={chapter_content} />
 
       <button

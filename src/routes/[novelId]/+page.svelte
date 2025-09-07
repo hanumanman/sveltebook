@@ -42,7 +42,9 @@
 
     <!-- Novel Details -->
     <div class="flex-1">
-      <h1 class="mb-2 text-2xl font-bold break-words text-gray-50 sm:text-3xl">{novel_name}</h1>
+      <h1 class="mb-2 text-2xl font-bold break-words text-gray-50 sm:text-3xl">
+        {novel_name}
+      </h1>
       <p class="text-chocolateCosmos-50 mb-4 text-sm font-medium">
         by <span class="font-semibold">{novel_author}</span>
       </p>
