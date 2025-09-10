@@ -32,10 +32,13 @@ export const actions: Actions = {
   progress: async (event) => {
     const formData = await event.request.formData()
     const lastChapterNumber = parseInt(formData.get('lastChapterNumber') as string)
+    console.log(lastChapterNumber)
+
     const chapterName = formData.get('chapterName') as string
     const chapterNumber = parseInt(formData.get('chapterNumber') as string)
+    console.log(chapterNumber)
 
-    if (isNaN(lastChapterNumber) || lastChapterNumber >= chapterNumber) {
+    if (lastChapterNumber >= chapterNumber) {
       return
     }
     const novelId = parseInt(event.params.novelId)
