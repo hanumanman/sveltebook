@@ -1,6 +1,7 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
   import TextReader from '$lib/services/textReader.svelte'
   import { Play, Volume2, Loader2 } from 'lucide-svelte'
   import { onDestroy, onMount } from 'svelte'
@@ -27,7 +28,7 @@
         tts.pause()
         break
       case 'stopped':
-        tts.play(text, gotoNextPage)
+        tts.play(text, gotoNextPage, $page.url.pathname)
         break
       case 'loading':
         // Do nothing while loading
@@ -47,7 +48,7 @@
   onMount(() => {
     if (!browser) return
     if (autoplay) {
-      tts.play(text, gotoNextPage)
+      tts.play(text, gotoNextPage, $page.url.pathname)
     }
   })
 

@@ -34,9 +34,9 @@ class TextReader {
     return this.state
   }
 
-  play = (text: string, onendedCallback?: () => void) => {
+  play = (text: string, onendedCallback?: () => void, chapterId: string = '') => {
     if (this.isMobile && this.mobilePlayer) {
-      this.mobilePlayer.play(text, onendedCallback)
+      this.mobilePlayer.play(text, onendedCallback, chapterId)
       return
     }
 

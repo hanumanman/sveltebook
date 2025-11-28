@@ -14,6 +14,9 @@ export class MobileAudioPlayer {
 
     private nextAudioBlob: Blob | null = null
     private prefetchAbortController: AbortController | null = null
+    private currentChapterId: string = ''
+    private currentChunkIndex: number = 0
+    private fullText: string = ''
 
     private constructor() {
         if (browser) {
@@ -28,9 +31,12 @@ export class MobileAudioPlayer {
             this.audio.onended = () => {
                 this.cleanupBlobUrl()
                 if (this.queue.length > 0) {
+                    this.currentChunkIndex++
+                    this.saveProgress()
                     this.playNextChunk()
                 } else {
                     this.state = 'stopped'
+                    this.clearProgress()
                     this.onEnded?.()
                 }
             }
@@ -86,13 +92,14 @@ export class MobileAudioPlayer {
     }
 
     private splitTextIntoChunks(text: string): string[] {
-        // Split by sentence endings (. ! ? ;) followed by whitespace or newline
-        // Keep the delimiter with the sentence
-        const sentences = text.match(/[^.!?;\n]+[.!?;\n]*(\s+|$)/g) || [text]
+        // Improved regex to handle quotes, brackets, and various punctuation
+        // Matches sentence endings followed by optional quotes/brackets, then whitespace or end of string
+        const sentenceRegex = /[^.!?;\n]+[.!?;\n]+["')\]]*(\s+|$)|[^.!?;\n]+$/g
+        const sentences = text.match(sentenceRegex) || [text]
 
         const chunks: string[] = []
         let currentChunk = ''
-        const TARGET_CHUNK_LENGTH = 200 // Target characters per chunk
+        const TARGET_CHUNK_LENGTH = 1000 // Increased to reduce request frequency
 
         for (const sentence of sentences) {
             if (currentChunk.length + sentence.length > TARGET_CHUNK_LENGTH && currentChunk.length > 0) {
@@ -113,11 +120,15 @@ export class MobileAudioPlayer {
     private async fetchAudio(text: string, signal: AbortSignal): Promise<Blob> {
         const voice = localStorage.getItem('selectedVoice') || 'vi-VN-NamMinhNeural'
 
+        // Add timeout to prevent infinite hanging
+        const timeoutSignal = AbortSignal.timeout(30000) // 30s timeout
+        const combinedSignal = AbortSignal.any([signal, timeoutSignal])
+
         const response = await fetch('/api/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text, voice }),
-            signal
+            signal: combinedSignal
         })
 
         if (!response.ok) {
@@ -245,9 +256,12 @@ export class MobileAudioPlayer {
 
             utterance.onend = () => {
                 if (this.queue.length > 0) {
+                    this.currentChunkIndex++
+                    this.saveProgress()
                     this.playNextChunk()
                 } else {
                     this.state = 'stopped'
+                    this.clearProgress()
                     this.onEnded?.()
                 }
             }
@@ -265,13 +279,46 @@ export class MobileAudioPlayer {
         }
     }
 
-    play = (text: string, onendedCallback?: () => void) => {
+    private saveProgress() {
+        if (browser && this.currentChapterId) {
+            localStorage.setItem(`tts_progress_${this.currentChapterId}`, this.currentChunkIndex.toString())
+        }
+    }
+
+    private loadProgress(): number {
+        if (browser && this.currentChapterId) {
+            const saved = localStorage.getItem(`tts_progress_${this.currentChapterId}`)
+            return saved ? parseInt(saved, 10) : 0
+        }
+        return 0
+    }
+
+    private clearProgress() {
+        if (browser && this.currentChapterId) {
+            localStorage.removeItem(`tts_progress_${this.currentChapterId}`)
+        }
+    }
+
+    play = (text: string, onendedCallback?: () => void, chapterId: string = '') => {
         this.stop()
         this.onEnded = onendedCallback || null
+        this.currentChapterId = chapterId
+        this.fullText = text
 
         // Split text into chunks
-        this.queue = this.splitTextIntoChunks(text)
-        console.log(`[play] Text split into ${this.queue.length} chunks`)
+        const allChunks = this.splitTextIntoChunks(text)
+        console.log(`[play] Text split into ${allChunks.length} chunks`)
+
+        // Check for saved progress
+        const savedIndex = this.loadProgress()
+        if (savedIndex > 0 && savedIndex < allChunks.length) {
+            console.log(`[play] Resuming from chunk index ${savedIndex}`)
+            this.currentChunkIndex = savedIndex
+            this.queue = allChunks.slice(savedIndex)
+        } else {
+            this.currentChunkIndex = 0
+            this.queue = allChunks
+        }
 
         this.playNextChunk()
     }
