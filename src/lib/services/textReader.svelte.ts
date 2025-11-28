@@ -34,9 +34,16 @@ class TextReader {
     return this.state
   }
 
-  play = (text: string, onendedCallback?: () => void, chapterId: string = '') => {
+  get getProgress(): number {
     if (this.isMobile && this.mobilePlayer) {
-      this.mobilePlayer.play(text, onendedCallback, chapterId)
+      return this.mobilePlayer.getProgress
+    }
+    return 0
+  }
+
+  play = (text: string, onendedCallback?: () => void, metadata?: { title: string; artist: string }) => {
+    if (this.isMobile && this.mobilePlayer) {
+      this.mobilePlayer.play(text, onendedCallback, metadata)
       return
     }
 

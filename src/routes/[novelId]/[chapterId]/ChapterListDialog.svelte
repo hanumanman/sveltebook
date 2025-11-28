@@ -38,10 +38,17 @@
   })
 
   const filteredChapters = $derived(
-    chapters.filter((chapter) =>
-      chapter.chapter_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chapter.chapter_number.toString().includes(searchQuery)
-    )
+    chapters.filter((chapter) => {
+      const query = searchQuery.trim()
+      const isNumeric = /^\d+$/.test(query)
+      
+      if (isNumeric) {
+        return chapter.chapter_number.toString() === query
+      }
+      
+      return chapter.chapter_name.toLowerCase().includes(query.toLowerCase()) ||
+             chapter.chapter_number.toString() === query
+    })
   )
   
   function handleBackdropClick(e: MouseEvent) {

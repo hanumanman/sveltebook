@@ -2,21 +2,27 @@ import { browser } from '$app/environment'
 
 type PlayerState = 'playing' | 'paused' | 'stopped' | 'loading'
 
+interface QueueItem {
+    text: string
+    audioPromise: Promise<Blob> | null
+}
+
 export class MobileAudioPlayer {
     private static instance: MobileAudioPlayer | null
     private audio: HTMLAudioElement | null = null
     private state: PlayerState = $state('stopped')
-    private queue: string[] = []
+
+    private queue: QueueItem[] = []
     private currentText: string = ''
     private currentBlobUrl: string | null = null
     private onEnded: (() => void) | null = null
     private abortController: AbortController | null = null
 
-    private nextAudioBlob: Blob | null = null
     private prefetchAbortController: AbortController | null = null
-    private currentChapterId: string = ''
     private currentChunkIndex: number = 0
     private fullText: string = ''
+    private progress: number = 0
+    private metadata: { title: string; artist: string } | null = null
 
     private constructor() {
         if (browser) {
@@ -32,17 +38,23 @@ export class MobileAudioPlayer {
                 this.cleanupBlobUrl()
                 if (this.queue.length > 0) {
                     this.currentChunkIndex++
-                    this.saveProgress()
+                    this.updateProgress()
                     this.playNextChunk()
                 } else {
                     this.state = 'stopped'
-                    this.clearProgress()
+                    this.progress = 0
                     this.onEnded?.()
                 }
             }
-            this.audio.onplay = () => (this.state = 'playing')
+            this.audio.onplay = () => {
+                this.state = 'playing'
+                this.updateMediaSessionState()
+            }
             this.audio.onpause = () => {
-                if (this.state !== 'stopped') this.state = 'paused'
+                if (this.state !== 'stopped') {
+                    this.state = 'paused'
+                    this.updateMediaSessionState()
+                }
             }
             this.audio.onerror = (e) => {
                 // Get more detailed error information
@@ -70,6 +82,28 @@ export class MobileAudioPlayer {
                     this.useBrowserTTS(this.currentText)
                 }
             }
+
+            // Setup Media Session handlers
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', () => this.resume())
+                navigator.mediaSession.setActionHandler('pause', () => this.pause())
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    // Restart current chapter or go to previous chunk?
+                    // For now, let's just restart the chapter
+                    if (this.fullText) {
+                        this.play(this.fullText, this.onEnded || undefined, this.metadata || undefined)
+                    }
+                })
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    // Skip to next chunk
+                    if (this.queue.length > 0) {
+                        this.audio?.pause()
+                        this.currentChunkIndex++
+                        this.updateProgress()
+                        this.playNextChunk()
+                    }
+                })
+            }
         }
     }
 
@@ -91,6 +125,38 @@ export class MobileAudioPlayer {
         return this.state
     }
 
+    get getProgress(): number {
+        return this.progress
+    }
+
+    private updateProgress() {
+        const totalChunks = this.currentChunkIndex + this.queue.length
+        if (totalChunks > 0) {
+            this.progress = (this.currentChunkIndex / totalChunks) * 100
+        } else {
+            this.progress = 0
+        }
+    }
+
+    private updateMediaSessionState() {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = this.state === 'playing' ? 'playing' : 'paused'
+        }
+    }
+
+    private setupMediaSession(title: string, artist: string) {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: title,
+                artist: artist,
+                album: 'SvelteBook',
+                artwork: [
+                    { src: '/favicon.png', sizes: '192x192', type: 'image/png' }
+                ]
+            })
+        }
+    }
+
     private splitTextIntoChunks(text: string): string[] {
         // Improved regex to handle quotes, brackets, and various punctuation
         // Matches sentence endings followed by optional quotes/brackets, then whitespace or end of string
@@ -99,12 +165,25 @@ export class MobileAudioPlayer {
 
         const chunks: string[] = []
         let currentChunk = ''
-        const TARGET_CHUNK_LENGTH = 1000 // Increased to reduce request frequency
+        let isFirstChunk = true
+
+        // First chunk is smaller for faster initial playback
+        const FIRST_CHUNK_LENGTH = 1000
+        // Calculate target chunk length to ensure max 5 chunks (approx)
+        const MIN_CHUNK_LENGTH = 1000
+        const MAX_CHUNKS = 6
+        const calculatedChunkLength = Math.ceil(text.length / MAX_CHUNKS)
+        const TARGET_CHUNK_LENGTH = Math.max(MIN_CHUNK_LENGTH, calculatedChunkLength)
+
+        console.log(`[splitTextIntoChunks] Text length: ${text.length}, First chunk: ${FIRST_CHUNK_LENGTH}, Other chunks: ${TARGET_CHUNK_LENGTH}`)
 
         for (const sentence of sentences) {
-            if (currentChunk.length + sentence.length > TARGET_CHUNK_LENGTH && currentChunk.length > 0) {
+            const currentTargetLength = isFirstChunk ? FIRST_CHUNK_LENGTH : TARGET_CHUNK_LENGTH
+
+            if (currentChunk.length + sentence.length > currentTargetLength && currentChunk.length > 0) {
                 chunks.push(currentChunk.trim())
                 currentChunk = sentence
+                isFirstChunk = false
             } else {
                 currentChunk += sentence
             }
@@ -121,7 +200,7 @@ export class MobileAudioPlayer {
         const voice = localStorage.getItem('selectedVoice') || 'vi-VN-NamMinhNeural'
 
         // Add timeout to prevent infinite hanging
-        const timeoutSignal = AbortSignal.timeout(30000) // 30s timeout
+        const timeoutSignal = AbortSignal.timeout(45000) // 45s timeout (increased for slower connections)
         const combinedSignal = AbortSignal.any([signal, timeoutSignal])
 
         const response = await fetch('/api/stream', {
@@ -148,25 +227,29 @@ export class MobileAudioPlayer {
         return blob
     }
 
-    private async prefetchNextChunk() {
+    private prefetchNextChunks() {
         if (this.queue.length === 0) return
 
-        const nextText = this.queue[0]
-        console.log('[prefetch] Prefetching next chunk:', nextText.substring(0, 30) + '...')
+        // Prefetch up to 2 next chunks
+        const itemsToPrefetch = this.queue.slice(0, 2)
 
-        try {
-            if (this.prefetchAbortController) {
-                this.prefetchAbortController.abort()
-            }
+        if (!this.prefetchAbortController) {
             this.prefetchAbortController = new AbortController()
-
-            this.nextAudioBlob = await this.fetchAudio(nextText, this.prefetchAbortController.signal)
-            console.log('[prefetch] Prefetch successful')
-        } catch (error: any) {
-            if (error.name !== 'AbortError') {
-                console.warn('[prefetch] Prefetch failed:', error)
-            }
         }
+
+        itemsToPrefetch.forEach((item, index) => {
+            if (!item.audioPromise) {
+                console.log(`[prefetch] Prefetching chunk +${index + 1}:`, item.text.substring(0, 30) + '...')
+                item.audioPromise = this.fetchAudio(item.text, this.prefetchAbortController!.signal)
+                    .catch(err => {
+                        console.warn(`[prefetch] Failed to prefetch chunk +${index + 1}:`, err.message || err)
+                        // Reset promise on error so it can be fetched on-demand when needed
+                        item.audioPromise = null
+                        // Return a rejected promise to maintain type signature
+                        return Promise.reject(err)
+                    })
+            }
+        })
     }
 
     private async playNextChunk() {
@@ -177,29 +260,40 @@ export class MobileAudioPlayer {
             return
         }
 
-        const text = this.queue.shift()
-        if (!text) {
-            console.log('[playNextChunk] No text in queue, returning')
+        const item = this.queue.shift()
+        if (!item) {
+            console.log('[playNextChunk] No item in queue, returning')
             return
         }
 
-        console.log('[playNextChunk] Processing text chunk:', text.substring(0, 50) + '...')
-        this.currentText = text
+        console.log('[playNextChunk] Processing text chunk:', item.text.substring(0, 50) + '...')
+        this.currentText = item.text
 
         try {
-            // Only show loading state if we don't have the blob ready
-            if (!this.nextAudioBlob) {
-                this.state = 'loading'
-                console.log('[playNextChunk] State set to loading (no prefetch)')
-            }
-
             let blob: Blob
 
-            if (this.nextAudioBlob) {
-                console.log('[playNextChunk] Using prefetched blob')
-                blob = this.nextAudioBlob
-                this.nextAudioBlob = null
+            // Try to use prefetched promise if available
+            if (item.audioPromise) {
+                try {
+                    console.log('[playNextChunk] Using prefetched promise')
+                    blob = await item.audioPromise
+                } catch (prefetchError: any) {
+                    // Prefetch failed, fetch on-demand
+                    console.log('[playNextChunk] Prefetch failed, fetching on-demand:', prefetchError.message || prefetchError)
+                    this.state = 'loading'
+
+                    if (this.abortController) {
+                        this.abortController.abort()
+                    }
+                    this.abortController = new AbortController()
+
+                    blob = await this.fetchAudio(item.text, this.abortController.signal)
+                }
             } else {
+                // No prefetch, fetch on-demand
+                this.state = 'loading'
+                console.log('[playNextChunk] State set to loading (no prefetch)')
+
                 // Cancel any previous fetch
                 if (this.abortController) {
                     this.abortController.abort()
@@ -207,7 +301,7 @@ export class MobileAudioPlayer {
                 this.abortController = new AbortController()
 
                 console.log('[playNextChunk] Fetching audio...')
-                blob = await this.fetchAudio(text, this.abortController.signal)
+                blob = await this.fetchAudio(item.text, this.abortController.signal)
             }
 
             // Cleanup previous blob URL
@@ -220,12 +314,20 @@ export class MobileAudioPlayer {
             if (this.audio) {
                 console.log('[playNextChunk] Setting audio.src to blob URL')
                 this.audio.src = url
+                
+                // Reapply playback rate (browser may reset it when changing src)
+                const savedRate = localStorage.getItem('playbackRate')
+                if (savedRate) {
+                    this.audio.playbackRate = parseFloat(savedRate)
+                    console.log('[playNextChunk] Reapplied playback rate:', savedRate)
+                }
+                
                 console.log('[playNextChunk] Calling audio.play()')
                 await this.audio.play()
                 console.log('[playNextChunk] Audio playback started successfully')
 
-                // Start prefetching the next chunk
-                this.prefetchNextChunk()
+                // Start prefetching the next chunks
+                this.prefetchNextChunks()
             } else {
                 console.error('[playNextChunk] Audio element is null!')
             }
@@ -239,7 +341,7 @@ export class MobileAudioPlayer {
             console.warn('Edge TTS failed, falling back to browser TTS:', error)
 
             // Fallback to browser's built-in TTS
-            this.useBrowserTTS(text)
+            this.useBrowserTTS(item.text)
         }
     }
 
@@ -257,11 +359,9 @@ export class MobileAudioPlayer {
             utterance.onend = () => {
                 if (this.queue.length > 0) {
                     this.currentChunkIndex++
-                    this.saveProgress()
                     this.playNextChunk()
                 } else {
                     this.state = 'stopped'
-                    this.clearProgress()
                     this.onEnded?.()
                 }
             }
@@ -279,47 +379,27 @@ export class MobileAudioPlayer {
         }
     }
 
-    private saveProgress() {
-        if (browser && this.currentChapterId) {
-            localStorage.setItem(`tts_progress_${this.currentChapterId}`, this.currentChunkIndex.toString())
-        }
-    }
-
-    private loadProgress(): number {
-        if (browser && this.currentChapterId) {
-            const saved = localStorage.getItem(`tts_progress_${this.currentChapterId}`)
-            return saved ? parseInt(saved, 10) : 0
-        }
-        return 0
-    }
-
-    private clearProgress() {
-        if (browser && this.currentChapterId) {
-            localStorage.removeItem(`tts_progress_${this.currentChapterId}`)
-        }
-    }
-
-    play = (text: string, onendedCallback?: () => void, chapterId: string = '') => {
+    play = (text: string, onendedCallback?: () => void, metadata?: { title: string; artist: string }) => {
         this.stop()
         this.onEnded = onendedCallback || null
-        this.currentChapterId = chapterId
         this.fullText = text
+        this.metadata = metadata || null
 
-        // Split text into chunks
-        const allChunks = this.splitTextIntoChunks(text)
-        console.log(`[play] Text split into ${allChunks.length} chunks`)
-
-        // Check for saved progress
-        const savedIndex = this.loadProgress()
-        if (savedIndex > 0 && savedIndex < allChunks.length) {
-            console.log(`[play] Resuming from chunk index ${savedIndex}`)
-            this.currentChunkIndex = savedIndex
-            this.queue = allChunks.slice(savedIndex)
-        } else {
-            this.currentChunkIndex = 0
-            this.queue = allChunks
+        if (metadata) {
+            this.setupMediaSession(metadata.title, metadata.artist)
         }
 
+        // Split text into chunks
+        const chunks = this.splitTextIntoChunks(text)
+        this.queue = chunks.map(t => ({
+            text: t,
+            audioPromise: null
+        }))
+
+        console.log(`[play] Text split into ${this.queue.length} chunks`)
+
+        this.currentChunkIndex = 0
+        this.progress = 0
         this.playNextChunk()
     }
 
@@ -353,7 +433,6 @@ export class MobileAudioPlayer {
             this.prefetchAbortController.abort()
             this.prefetchAbortController = null
         }
-        this.nextAudioBlob = null
 
         if (this.audio) {
             this.audio.pause()
@@ -363,6 +442,11 @@ export class MobileAudioPlayer {
         this.cleanupBlobUrl()
         this.queue = []
         this.state = 'stopped'
+        this.progress = 0
+
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'none'
+        }
     }
 }
 

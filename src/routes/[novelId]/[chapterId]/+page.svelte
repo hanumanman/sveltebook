@@ -4,13 +4,13 @@
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
-  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings, List } from 'lucide-svelte'
-
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
   import ChapterListDialog from './ChapterListDialog.svelte'
   import TTSButton from './TTSButton.svelte'
+  import RollingBlindReader from '$lib/components/RollingBlindReader.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
+  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings, List, Play, Pause, ScanLine } from 'lucide-svelte'
 
   let { data }: PageProps = $props()
   const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter)
@@ -51,6 +51,104 @@
   function toggleChapterListDialog() {
     openChapterListDialog = !openChapterListDialog
   }
+
+  let isRollingBlindPlaying = $state(false)
+  let startRatio = $state(0)
+
+  // Infinite reading state
+  let loadedChapters = $state<Array<{ number: number; name: string; content: string; novelId: number }>>([])
+  let isLoadingNext = $state(false)
+  let currentMaxChapter = $state(chapter_number)
+  let chaptersMetadata: any[] = [] // Cache for chapter metadata
+
+  // Initialize loaded chapters with current chapter
+  $effect(() => {
+    loadedChapters = [{
+      number: chapter_number,
+      name: chapter_name,
+      content: chapter_content,
+      novelId: novel_id
+    }]
+    currentMaxChapter = chapter_number
+  })
+
+  // Prefetch chapters metadata once
+  $effect(() => {
+    if ($pageSettingsStore.infiniteReading && chaptersMetadata.length === 0) {
+      fetch(`/api/novel/${novel_id}/chapters`)
+        .then(res => res.json())
+        .then(chapters => {
+          chaptersMetadata = chapters
+        })
+        .catch(err => console.error('Failed to prefetch chapters metadata:', err))
+    }
+  })
+
+  // Infinite scroll handler
+  async function handleScroll() {
+    if (!$pageSettingsStore.infiniteReading) return
+    if (isLoadingNext) return
+    if (currentMaxChapter >= data.chapter_count) return
+
+    const scrollPosition = window.scrollY + window.innerHeight
+    const documentHeight = document.documentElement.scrollHeight
+    const threshold = 4000 // pixels from bottom - load earlier for smoother UX
+
+    if (scrollPosition >= documentHeight - threshold) {
+      isLoadingNext = true
+      const nextChapterNumber = currentMaxChapter + 1
+
+      try {
+        // Use cached metadata if available
+        const nextChapterData = chaptersMetadata.find((ch: any) => ch.chapter_number === nextChapterNumber)
+
+        if (nextChapterData) {
+          // Fetch full chapter content
+          const chapterResponse = await fetch(`/${novel_id}/${nextChapterNumber}`)
+          const html = await chapterResponse.text()
+          
+          // Parse the response to extract chapter data
+          const parser = new DOMParser()
+          const doc = parser.parseFromString(html, 'text/html')
+          const articleElement = doc.querySelector('article')
+          const paragraphs = articleElement?.querySelectorAll('p')
+          const content = Array.from(paragraphs || []).map(p => p.textContent).join('\n\n')
+
+          loadedChapters = [...loadedChapters, {
+            number: nextChapterNumber,
+            name: nextChapterData.chapter_name,
+            content: content,
+            novelId: novel_id
+          }]
+
+          currentMaxChapter = nextChapterNumber
+
+          // Update URL and browser history
+          const newUrl = `/${novel_id}/${nextChapterNumber}`
+          window.history.pushState({ chapterNumber: nextChapterNumber }, '', newUrl)
+          
+          // Update page title
+          document.title = `Chapter ${nextChapterNumber}: ${nextChapterData.chapter_name}`
+
+          // Save progress
+          saveProgress()
+        }
+      } catch (error) {
+        console.error('Failed to load next chapter:', error)
+      } finally {
+        isLoadingNext = false
+      }
+    }
+  }
+
+  // Add scroll listener
+  $effect(() => {
+    if ($pageSettingsStore.infiniteReading) {
+      window.addEventListener('scroll', handleScroll)
+      return () => window.removeEventListener('scroll', handleScroll)
+    }
+  })
+
 </script>
 
 <svelte:head>
@@ -90,7 +188,46 @@
 
     <!-- Page Controls -->
     <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pt-3">
-      <TTSButton text={chapter_content} nextPageUrl={`/${novel_id}/${nextChapter}`} />
+      <TTSButton 
+        text={chapter_content} 
+        nextPageUrl={`/${novel_id}/${nextChapter}`} 
+        title={data.novel.title}
+        chapterTitle={`Chapter ${chapter_number}: ${chapter_name}`}
+      />
+
+      {#if $pageSettingsStore.rollingBlindFeatureEnabled}
+        <button
+          onclick={() => {
+            if (!$pageSettingsStore.rollingBlindActive) {
+              // Enter Mode
+              // Calculate start ratio based on scroll position
+              const scrollY = window.scrollY;
+              const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+              // Subtract a significantly larger buffer (e.g. 0.15 or 15%) to ensure we don't skip the current line
+              const rawRatio = totalHeight > 0 ? scrollY / totalHeight : 0;
+              const ratio = Math.max(0, rawRatio - 0.15); 
+              
+              // Store ratio in a local variable to pass to component
+              // We can't pass it directly to store as it's transient
+              // Let's use a local state for startRatio
+              startRatio = ratio;
+              
+              $pageSettingsStore.rollingBlindActive = true;
+              isRollingBlindPlaying = false; // Start paused so user can read first
+            } else {
+              // Exit Mode
+              $pageSettingsStore.rollingBlindActive = false;
+              isRollingBlindPlaying = false;
+              // Ideally we should sync back the scroll position, but that's harder.
+              // For now, just exit.
+            }
+          }}
+          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700 {$pageSettingsStore.rollingBlindActive ? 'bg-blue-100 dark:bg-blue-900' : ''}"
+          title={$pageSettingsStore.rollingBlindActive ? 'Exit Rolling Blind' : 'Start Rolling Blind'}
+        >
+          <ScanLine size={18} class="sm:w-5 sm:h-5" />
+        </button>
+      {/if}
 
       <button
         onclick={toggleChapterListDialog}
@@ -138,22 +275,71 @@
   </div>
 
   <!-- Chapter Content -->
-  <article
-    style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
-    class="prose prose-lg dark:prose-invert max-w-none pb-4"
-  >
-    {#each paragraphs as paragraph, i (i)}
-      <p>{paragraph}</p>
+  {#if $pageSettingsStore.infiniteReading && loadedChapters.length > 0}
+    <!-- Render all loaded chapters -->
+    {#each loadedChapters as chap, idx (chap.number)}
+      {#if idx > 0}
+        <!-- Chapter separator for subsequent chapters -->
+        <div class="my-8 border-t-2 border-gray-500 pt-6">
+          <h2 class="text-base sm:text-xl text-gray-600 dark:text-gray-400 mb-2">Chapter {chap.number}</h2>
+          <h3 class="text-xl sm:text-2xl md:text-3xl font-bold leading-tight mb-4">{chap.name}</h3>
+        </div>
+      {/if}
+      
+      <article
+        style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+        class="prose prose-lg dark:prose-invert max-w-none pb-4"
+      >
+        {#each plainContentToParagraphs(chap.content) as paragraph, i (i)}
+          <p class="mb-6">{paragraph}</p>
+        {/each}
+      </article>
     {/each}
-  </article>
 
-  {#if !hasNextChapter}
-    <div class="flex justify-center pb-3">
-      <span>You have caught up!</span>
-    </div>
+    <!-- End of book message -->
+    {#if currentMaxChapter >= data.chapter_count}
+      <div class="flex justify-center pb-3 pt-8">
+        <span>You have caught up!</span>
+      </div>
+    {/if}
+    <!-- End of book message -->
+    {#if currentMaxChapter >= data.chapter_count}
+      <div class="flex justify-center pb-3 pt-8">
+        <span>You have caught up!</span>
+      </div>
+    {/if}
+  {:else if $pageSettingsStore.rollingBlindActive}
+    <!-- Rolling Blind Mode -->
+    <RollingBlindReader 
+      text={plainContentToParagraphs(chapter_content).join('\n\n')} 
+      bind:isPlaying={isRollingBlindPlaying}
+      speed={$pageSettingsStore.rollingBlindSpeed}
+      fontSize={$pageSettingsStore.fontSize}
+      lineHeight={$pageSettingsStore.lineHeight}
+      theme={themes[$pageSettingsStore.theme]}
+      startRatio={startRatio}
+    />
+  {:else}
+    <!-- Single chapter mode (default behavior) -->
+    <article
+      style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+      class="prose prose-lg dark:prose-invert max-w-none pb-4"
+    >
+      {#each paragraphs as paragraph, i (i)}
+        <p class="mb-6">{paragraph}</p>
+      {/each}
+    </article>
+
+    {#if !hasNextChapter}
+      <div class="flex justify-center pb-3">
+        <span>You have caught up!</span>
+      </div>
+    {/if}
   {/if}
 
-  <!-- Bottom Chapter Navigation -->
+
+  <!-- Bottom Chapter Navigation (hidden in infinite reading mode) -->
+  {#if !$pageSettingsStore.infiniteReading}
   <div class="flex flex-col gap-2 border-t border-gray-200 pt-3 sm:pt-4 dark:border-gray-700">
     {#if hasNextChapter}
       <LinkButton class="border border-gray-700 text-sm sm:text-base" href="/{novel_id}/{nextChapter}">
@@ -182,6 +368,7 @@
       <ChevronUp size={18} class="sm:w-5 sm:h-5" />
     </Button>
   </div>
+  {/if}
 </div>
 
 <!-- Hidden form to store progress values -->
