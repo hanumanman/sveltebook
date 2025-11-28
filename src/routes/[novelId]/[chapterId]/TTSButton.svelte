@@ -53,17 +53,17 @@
   })
 </script>
 
-<label class="flex gap-1 items-center">
+<label class="flex gap-1 items-center text-xs sm:text-sm">
   <input type="checkbox" bind:checked={autoplay} />
   Autoplay
 </label>
 <button
   onclick={handleClick}
-  class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+  class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
 >
   {#if tts.getState === 'playing'}
-    <Volume2 class="animate-pulse" size={20} />
+    <Volume2 class="animate-pulse w-[18px] h-[18px] sm:w-5 sm:h-5" />
   {:else}
-    <Play size={20} />
+    <Play size={18} class="sm:w-5 sm:h-5" />
   {/if}
 </button>

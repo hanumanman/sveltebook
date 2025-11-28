@@ -67,7 +67,7 @@
 />
 
 <div
-  class="mx-auto flex w-full max-w-lg flex-col justify-between p-4"
+  class="mx-auto flex w-full max-w-lg flex-col justify-between p-2 sm:p-4"
   style="background-color: {themes[$pageSettingsStore.theme].background}; color: {themes[
     $pageSettingsStore.theme
   ].color};"
@@ -75,63 +75,63 @@
   <!-- Back to Novel Link -->
   <a
     href="/{novel_id}"
-    class="mb-6 inline-flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+    class="mb-4 sm:mb-6 inline-flex items-center text-sm sm:text-base text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
   >
-    <ChevronLeft size={20} />
+    <ChevronLeft size={18} class="sm:w-5 sm:h-5" />
     <span>Back to Novel</span>
   </a>
 
   <!-- Chapter Title -->
-  <div class="mb-6 gap-4 border-b border-gray-500 pb-6">
+  <div class="mb-4 sm:mb-6 gap-4 border-b border-gray-500 pb-4 sm:pb-6">
     <div>
-      <h1 class="pb-3 text-xl text-gray-600 dark:text-gray-400">Chapter {chapter_number}</h1>
-      <h2 class="mb-1 text-3xl font-bold">{chapter_name}</h2>
+      <h1 class="pb-2 sm:pb-3 text-base sm:text-xl text-gray-600 dark:text-gray-400">Chapter {chapter_number}</h1>
+      <h2 class="mb-1 text-xl sm:text-2xl md:text-3xl font-bold leading-tight">{chapter_name}</h2>
     </div>
 
     <!-- Page Controls -->
-    <div class="flex justify-end gap-2 pt-3">
+    <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pt-3">
       <TTSButton text={chapter_content} nextPageUrl={`/${novel_id}/${nextChapter}`} />
 
       <button
         onclick={toggleChapterListDialog}
-        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
         title="Chapter List"
       >
-        <List size={20} />
+        <List size={18} class="sm:w-5 sm:h-5" />
       </button>
 
       <button
         onclick={toggleSettingsDialog}
-        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
         title="Open Settings Dialog"
       >
-        <Settings size={20} />
+        <Settings size={18} class="sm:w-5 sm:h-5" />
       </button>
       <button
         onclick={() => scrollPage('bottom')}
-        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
         title="Scroll to Bottom"
       >
-        <ChevronDown size={20} />
+        <ChevronDown size={18} class="sm:w-5 sm:h-5" />
       </button>
 
       {#if hasPrevChapter}
         <a
           href="/{novel_id}/{prevChapter}"
-          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
           title="Previous Chapter"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} class="sm:w-5 sm:h-5" />
         </a>
       {/if}
 
       {#if hasNextChapter}
         <a
           href="/{novel_id}/{nextChapter}"
-          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
           title="Next Chapter"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={18} class="sm:w-5 sm:h-5" />
         </a>
       {/if}
     </div>
@@ -154,11 +154,11 @@
   {/if}
 
   <!-- Bottom Chapter Navigation -->
-  <div class="flex flex-col gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+  <div class="flex flex-col gap-2 border-t border-gray-200 pt-3 sm:pt-4 dark:border-gray-700">
     {#if hasNextChapter}
-      <LinkButton class="border border-gray-700" href="/{novel_id}/{nextChapter}">
+      <LinkButton class="border border-gray-700 text-sm sm:text-base" href="/{novel_id}/{nextChapter}">
         Next Chapter
-        <ChevronRight size={20} />
+        <ChevronRight size={18} class="sm:w-5 sm:h-5" />
       </LinkButton>
     {:else}
       <div></div>
@@ -167,19 +167,19 @@
     {#if hasPrevChapter}
       <LinkButton
         href="/{novel_id}/{prevChapter}"
-        class="bg-pennBlue-900 w-full border border-gray-700"
+        class="bg-pennBlue-900 w-full border border-gray-700 text-sm sm:text-base"
       >
         <div class="flex items-center gap-2">
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} class="sm:w-5 sm:h-5" />
           <span>Previous Chapter</span>
         </div>
       </LinkButton>
     {:else}
       <div></div>
     {/if}
-    <Button class="bg-pennBlue-900 w-full border border-gray-700" onclick={() => scrollPage('top')}>
+    <Button class="bg-pennBlue-900 w-full border border-gray-700 text-sm sm:text-base" onclick={() => scrollPage('top')}>
       <span>Go to Top</span>
-      <ChevronUp size={20} />
+      <ChevronUp size={18} class="sm:w-5 sm:h-5" />
     </Button>
   </div>
 </div>
