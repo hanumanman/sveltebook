@@ -4,10 +4,11 @@
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
-  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings } from 'lucide-svelte'
+  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings, List } from 'lucide-svelte'
 
   import type { PageProps } from './$types'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
+  import ChapterListDialog from './ChapterListDialog.svelte'
   import TTSButton from './TTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
@@ -45,6 +46,11 @@
   function toggleSettingsDialog() {
     openSettingsDialog = !openSettingsDialog
   }
+
+  let openChapterListDialog = $state(false)
+  function toggleChapterListDialog() {
+    openChapterListDialog = !openChapterListDialog
+  }
 </script>
 
 <svelte:head>
@@ -53,6 +59,12 @@
 </svelte:head>
 
 <PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
+<ChapterListDialog 
+  open={openChapterListDialog} 
+  toggleDialogFn={toggleChapterListDialog} 
+  novelId={novel_id}
+  currentChapterNumber={chapter_number}
+/>
 
 <div
   class="mx-auto flex w-full max-w-lg flex-col justify-between p-4"
@@ -79,6 +91,14 @@
     <!-- Page Controls -->
     <div class="flex justify-end gap-2 pt-3">
       <TTSButton text={chapter_content} nextPageUrl={`/${novel_id}/${nextChapter}`} />
+
+      <button
+        onclick={toggleChapterListDialog}
+        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-3 dark:border-gray-700"
+        title="Chapter List"
+      >
+        <List size={20} />
+      </button>
 
       <button
         onclick={toggleSettingsDialog}

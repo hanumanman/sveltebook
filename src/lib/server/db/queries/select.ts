@@ -1,4 +1,4 @@
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, desc, eq } from 'drizzle-orm'
 
 import { db } from '..'
 import { chaptersTable, novelsTable, progressTable, usersTable } from '../schema'
@@ -67,4 +67,16 @@ export async function getProgress(novelId: number, userId: number) {
     .where(and(eq(progressTable.novel_id, novelId), eq(progressTable.user_id, userId)))
     .limit(1)
   return progress[0]
+}
+
+export async function getChaptersList(novelId: number) {
+  return await db
+    .select({
+      id: chaptersTable.id,
+      chapter_name: chaptersTable.chapter_name,
+      chapter_number: chaptersTable.chapter_number
+    })
+    .from(chaptersTable)
+    .where(eq(chaptersTable.novel_id, novelId))
+    .orderBy(desc(chaptersTable.chapter_number))
 }
