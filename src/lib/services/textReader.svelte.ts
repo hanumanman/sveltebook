@@ -98,6 +98,13 @@ class TextReader {
     this.synth?.cancel()
     this.state = 'stopped'
   }
+
+  setPlaybackRate = (rate: number) => {
+    if (this.isMobile && this.mobilePlayer) {
+      this.mobilePlayer.setPlaybackRate(rate)
+    }
+    // Desktop TTS doesn't support playback rate control via SpeechSynthesis API
+  }
 }
 
 export default TextReader

@@ -1,6 +1,8 @@
 <script lang="ts">
   import VoiceSelector from '$lib/components/VoiceSelector.svelte'
   import Button from '$lib/components/Button.svelte'
+  import TextReader from '$lib/services/textReader.svelte'
+  import { browser } from '$app/environment'
 
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
@@ -10,6 +12,26 @@
   }
 
   let { open, toggleDialogFn }: Props = $props()
+
+  const tts = TextReader.getInstance()
+
+  // Playback speed state
+  let playbackSpeed = $state(1.0)
+
+  // Load playback speed from localStorage
+  $effect(() => {
+    if (!browser) return
+    const savedSpeed = localStorage.getItem('playbackRate')
+    if (savedSpeed) {
+      playbackSpeed = parseFloat(savedSpeed)
+    }
+  })
+
+  // Apply playback speed changes
+  $effect(() => {
+    if (!browser) return
+    tts.setPlaybackRate(playbackSpeed)
+  })
 
   //Convert themes to an array
   const themesArray = Object.entries(themes).map(([key, value]) => ({
@@ -72,6 +94,21 @@
       <div class="w-full">
         <h2 class="mb-2">TTS Voice</h2>
         <VoiceSelector />
+      </div>
+
+      <div class="w-full">
+        <h2>Playback Speed</h2>
+        <div class="flex gap-2">
+          <input
+            type="range"
+            class="grow"
+            bind:value={playbackSpeed}
+            min="0.5"
+            max="2.0"
+            step="0.1"
+          />
+          <p>{playbackSpeed}x</p>
+        </div>
       </div>
 
       <div
