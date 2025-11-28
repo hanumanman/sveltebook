@@ -1,4 +1,5 @@
 <script lang="ts">
+  import VoiceSelector from '$lib/components/VoiceSelector.svelte'
   import Button from '$lib/components/Button.svelte'
 
   import { pageSettingsStore, themes } from './pageSettingsStore'
@@ -66,6 +67,11 @@
             </Button>
           {/each}
         </div>
+      </div>
+
+      <div class="w-full">
+        <h2 class="mb-2">TTS Voice</h2>
+        <VoiceSelector />
       </div>
 
       <div

@@ -5,5 +5,8 @@ import { defineConfig } from 'vite'
 import devtoolsJson from 'vite-plugin-devtools-json'
 
 export default defineConfig({
-  plugins: [enhancedImages(), tailwindcss(), sveltekit(), devtoolsJson()]
+  plugins: [enhancedImages(), tailwindcss(), sveltekit(), devtoolsJson()],
+  ssr: {
+    noExternal: ['@lobehub/tts']
+  }
 })
