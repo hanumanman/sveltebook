@@ -12,6 +12,9 @@ export class MobileAudioPlayer {
     private onEnded: (() => void) | null = null
     private abortController: AbortController | null = null
 
+    private nextAudioBlob: Blob | null = null
+    private prefetchAbortController: AbortController | null = null
+
     private constructor() {
         if (browser) {
             this.audio = new Audio()
@@ -82,6 +85,79 @@ export class MobileAudioPlayer {
         return this.state
     }
 
+    private splitTextIntoChunks(text: string): string[] {
+        // Split by sentence endings (. ! ? ;) followed by whitespace or newline
+        // Keep the delimiter with the sentence
+        const sentences = text.match(/[^.!?;\n]+[.!?;\n]*(\s+|$)/g) || [text]
+
+        const chunks: string[] = []
+        let currentChunk = ''
+        const TARGET_CHUNK_LENGTH = 200 // Target characters per chunk
+
+        for (const sentence of sentences) {
+            if (currentChunk.length + sentence.length > TARGET_CHUNK_LENGTH && currentChunk.length > 0) {
+                chunks.push(currentChunk.trim())
+                currentChunk = sentence
+            } else {
+                currentChunk += sentence
+            }
+        }
+
+        if (currentChunk.trim().length > 0) {
+            chunks.push(currentChunk.trim())
+        }
+
+        return chunks
+    }
+
+    private async fetchAudio(text: string, signal: AbortSignal): Promise<Blob> {
+        const voice = localStorage.getItem('selectedVoice') || 'vi-VN-NamMinhNeural'
+
+        const response = await fetch('/api/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voice }),
+            signal
+        })
+
+        if (!response.ok) {
+            throw new Error(`TTS request failed with status ${response.status}`)
+        }
+
+        const blob = await response.blob()
+
+        if (blob.size === 0) {
+            throw new Error('Received empty audio blob')
+        }
+
+        if (!blob.type.startsWith('audio/')) {
+            console.warn('Unexpected blob type:', blob.type)
+        }
+
+        return blob
+    }
+
+    private async prefetchNextChunk() {
+        if (this.queue.length === 0) return
+
+        const nextText = this.queue[0]
+        console.log('[prefetch] Prefetching next chunk:', nextText.substring(0, 30) + '...')
+
+        try {
+            if (this.prefetchAbortController) {
+                this.prefetchAbortController.abort()
+            }
+            this.prefetchAbortController = new AbortController()
+
+            this.nextAudioBlob = await this.fetchAudio(nextText, this.prefetchAbortController.signal)
+            console.log('[prefetch] Prefetch successful')
+        } catch (error: any) {
+            if (error.name !== 'AbortError') {
+                console.warn('[prefetch] Prefetch failed:', error)
+            }
+        }
+    }
+
     private async playNextChunk() {
         console.log('[playNextChunk] Starting, queue length:', this.queue.length)
 
@@ -97,55 +173,31 @@ export class MobileAudioPlayer {
         }
 
         console.log('[playNextChunk] Processing text chunk:', text.substring(0, 50) + '...')
-
-        // Track current text for error fallback
         this.currentText = text
 
         try {
-            this.state = 'loading'
-            console.log('[playNextChunk] State set to loading')
-
-            // Cancel any previous fetch
-            if (this.abortController) {
-                this.abortController.abort()
-            }
-            this.abortController = new AbortController()
-
-            // Get selected voice from localStorage
-            const voice = localStorage.getItem('selectedVoice') || 'vi-VN-NamMinhNeural'
-            console.log('[playNextChunk] Using voice:', voice)
-
-            console.log('[playNextChunk] Fetching audio from /api/stream...')
-            const response = await fetch('/api/stream', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, voice }),
-                signal: this.abortController.signal
-            })
-
-            console.log('[playNextChunk] Response status:', response.status)
-
-            if (!response.ok) {
-                throw new Error(`TTS request failed with status ${response.status}`)
+            // Only show loading state if we don't have the blob ready
+            if (!this.nextAudioBlob) {
+                this.state = 'loading'
+                console.log('[playNextChunk] State set to loading (no prefetch)')
             }
 
-            console.log('[playNextChunk] Converting response to blob...')
-            const blob = await response.blob()
+            let blob: Blob
 
-            // Validate blob
-            if (blob.size === 0) {
-                throw new Error('Received empty audio blob')
+            if (this.nextAudioBlob) {
+                console.log('[playNextChunk] Using prefetched blob')
+                blob = this.nextAudioBlob
+                this.nextAudioBlob = null
+            } else {
+                // Cancel any previous fetch
+                if (this.abortController) {
+                    this.abortController.abort()
+                }
+                this.abortController = new AbortController()
+
+                console.log('[playNextChunk] Fetching audio...')
+                blob = await this.fetchAudio(text, this.abortController.signal)
             }
-
-            // Check if it's a valid audio type
-            if (!blob.type.startsWith('audio/')) {
-                console.warn('[playNextChunk] Unexpected blob type:', blob.type)
-            }
-
-            console.log('[playNextChunk] Audio blob received:', {
-                size: blob.size,
-                type: blob.type
-            })
 
             // Cleanup previous blob URL
             this.cleanupBlobUrl()
@@ -160,6 +212,9 @@ export class MobileAudioPlayer {
                 console.log('[playNextChunk] Calling audio.play()')
                 await this.audio.play()
                 console.log('[playNextChunk] Audio playback started successfully')
+
+                // Start prefetching the next chunk
+                this.prefetchNextChunk()
             } else {
                 console.error('[playNextChunk] Audio element is null!')
             }
@@ -212,11 +267,11 @@ export class MobileAudioPlayer {
 
     play = (text: string, onendedCallback?: () => void) => {
         this.stop()
-        this.currentText = text
         this.onEnded = onendedCallback || null
 
-        // Send entire text in one request for seamless playback
-        this.queue = [text]
+        // Split text into chunks
+        this.queue = this.splitTextIntoChunks(text)
+        console.log(`[play] Text split into ${this.queue.length} chunks`)
 
         this.playNextChunk()
     }
@@ -247,6 +302,12 @@ export class MobileAudioPlayer {
             this.abortController.abort()
             this.abortController = null
         }
+        if (this.prefetchAbortController) {
+            this.prefetchAbortController.abort()
+            this.prefetchAbortController = null
+        }
+        this.nextAudioBlob = null
+
         if (this.audio) {
             this.audio.pause()
             this.audio.currentTime = 0
