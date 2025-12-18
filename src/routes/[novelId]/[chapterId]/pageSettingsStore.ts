@@ -6,9 +6,6 @@ interface IPageSettings {
   lineHeight: number
   theme: TTheme
   infiniteReading: boolean
-  rollingBlindFeatureEnabled: boolean // Controls button visibility
-  rollingBlindActive: boolean // Controls the view
-  rollingBlindSpeed: number
 }
 
 export type TTheme = keyof typeof themes
@@ -60,10 +57,7 @@ const defaultSettings: IPageSettings = {
   fontSize: 16,
   lineHeight: 1.5,
   theme: 'default',
-  infiniteReading: false,
-  rollingBlindFeatureEnabled: false,
-  rollingBlindActive: false,
-  rollingBlindSpeed: 10
+  infiniteReading: false
 }
 
 const getStoredSettings = (): IPageSettings => {

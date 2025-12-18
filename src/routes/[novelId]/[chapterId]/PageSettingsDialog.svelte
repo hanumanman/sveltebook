@@ -151,36 +151,6 @@
       </div>
 
       <div class="w-full border-t border-gray-600 pt-4">
-        <h2 class="text-base md:text-lg mb-2">Rolling Blind Mode</h2>
-        <p class="text-sm text-gray-400 mb-3">Enable the Rolling Blind reading feature</p>
-        <label
-          class="flex items-center gap-3 cursor-pointer p-3 bg-pennBlue-800/50 rounded-lg hover:bg-pennBlue-800 mb-4"
-        >
-          <input
-            type="checkbox"
-            bind:checked={$pageSettingsStore.rollingBlindFeatureEnabled}
-            class="w-6 h-6 rounded border-gray-300 cursor-pointer accent-blue-500"
-          />
-          <span class="text-base">Show Rolling Blind Button</span>
-        </label>
-
-        {#if $pageSettingsStore.rollingBlindFeatureEnabled}
-          <h3 class="text-sm md:text-base mb-2">Blind Speed</h3>
-          <div class="flex gap-3 items-center">
-            <input
-              type="range"
-              class="grow h-2 cursor-pointer"
-              bind:value={$pageSettingsStore.rollingBlindSpeed}
-              min="1"
-              max="50"
-              step="1"
-            />
-            <p class="min-w-[60px] text-right">{$pageSettingsStore.rollingBlindSpeed}%/s</p>
-          </div>
-        {/if}
-      </div>
-
-      <div class="w-full border-t border-gray-600 pt-4">
         <h2 class="text-base md:text-lg mb-3">TTS Voice</h2>
         <VoiceSelector />
       </div>
@@ -222,10 +192,7 @@
               fontSize: 16,
               lineHeight: 1.5,
               theme: 'default',
-              infiniteReading: false,
-              rollingBlindFeatureEnabled: false,
-              rollingBlindActive: false,
-              rollingBlindSpeed: 10
+              infiniteReading: false
             }
           }}>Reset</Button
         >

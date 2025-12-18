@@ -3,17 +3,8 @@
   import { preloadData } from '$app/navigation'
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
-  import RollingBlindReader from '$lib/components/RollingBlindReader.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
-  import {
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    ChevronUp,
-    List,
-    ScanLine,
-    Settings
-  } from 'lucide-svelte'
+  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, List, Settings } from 'lucide-svelte'
 
   import type { PageProps } from './$types'
   import ChapterListDialog from './ChapterListDialog.svelte'
@@ -60,9 +51,6 @@
   function toggleChapterListDialog() {
     openChapterListDialog = !openChapterListDialog
   }
-
-  let isRollingBlindPlaying = $state(false)
-  let startRatio = $state(0)
 
   // Infinite reading state
   let loadedChapters = $state<
@@ -218,44 +206,6 @@
         chapterTitle={`Chapter ${chapter_number}: ${chapter_name}`}
       />
 
-      {#if $pageSettingsStore.rollingBlindFeatureEnabled}
-        <button
-          onclick={() => {
-            if (!$pageSettingsStore.rollingBlindActive) {
-              // Enter Mode
-              // Calculate start ratio based on scroll position
-              const scrollY = window.scrollY
-              const totalHeight = document.documentElement.scrollHeight - window.innerHeight
-              // Subtract a significantly larger buffer (e.g. 0.15 or 15%) to ensure we don't skip the current line
-              const rawRatio = totalHeight > 0 ? scrollY / totalHeight : 0
-              const ratio = Math.max(0, rawRatio - 0.15)
-
-              // Store ratio in a local variable to pass to component
-              // We can't pass it directly to store as it's transient
-              // Let's use a local state for startRatio
-              startRatio = ratio
-
-              $pageSettingsStore.rollingBlindActive = true
-              isRollingBlindPlaying = false // Start paused so user can read first
-            } else {
-              // Exit Mode
-              $pageSettingsStore.rollingBlindActive = false
-              isRollingBlindPlaying = false
-              // Ideally we should sync back the scroll position, but that's harder.
-              // For now, just exit.
-            }
-          }}
-          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700 {$pageSettingsStore.rollingBlindActive
-            ? 'bg-blue-100 dark:bg-blue-900'
-            : ''}"
-          title={$pageSettingsStore.rollingBlindActive
-            ? 'Exit Rolling Blind'
-            : 'Start Rolling Blind'}
-        >
-          <ScanLine size={18} class="sm:w-5 sm:h-5" />
-        </button>
-      {/if}
-
       <button
         onclick={toggleChapterListDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
@@ -337,17 +287,6 @@
         <span>You have caught up!</span>
       </div>
     {/if}
-  {:else if $pageSettingsStore.rollingBlindActive}
-    <!-- Rolling Blind Mode -->
-    <RollingBlindReader
-      text={plainContentToParagraphs(chapter_content).join('\n\n')}
-      bind:isPlaying={isRollingBlindPlaying}
-      speed={$pageSettingsStore.rollingBlindSpeed}
-      fontSize={$pageSettingsStore.fontSize}
-      lineHeight={$pageSettingsStore.lineHeight}
-      theme={themes[$pageSettingsStore.theme]}
-      {startRatio}
-    />
   {:else}
     <!-- Single chapter mode (default behavior) -->
     <article
