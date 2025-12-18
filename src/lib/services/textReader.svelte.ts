@@ -1,4 +1,5 @@
 import { browser } from '$app/environment'
+
 import MobileAudioPlayer from './mobileAudioPlayer.svelte'
 
 type ReaderState = 'playing' | 'paused' | 'stopped' | 'loading'
@@ -13,7 +14,9 @@ class TextReader {
 
   private constructor() {
     if (browser) {
-      this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      )
       if (this.isMobile) {
         this.mobilePlayer = MobileAudioPlayer.getInstance()
       }
@@ -41,7 +44,11 @@ class TextReader {
     return 0
   }
 
-  play = (text: string, onendedCallback?: () => void, metadata?: { title: string; artist: string }) => {
+  play = (
+    text: string,
+    onendedCallback?: () => void,
+    metadata?: { title: string; artist: string }
+  ) => {
     if (this.isMobile && this.mobilePlayer) {
       this.mobilePlayer.play(text, onendedCallback, metadata)
       return

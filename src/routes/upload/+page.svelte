@@ -3,6 +3,7 @@
   import { invalidateAll } from '$app/navigation'
   import Button from '$lib/components/Button.svelte'
   import Dropzone from 'svelte-file-dropzone'
+
   import type { PageData } from './$types'
 
   export let data: PageData
@@ -46,21 +47,25 @@
     parsedChapters = chapters
   }
 
-  function handleCreateResult({ result }: { result: any }) {
-    if (result.type === 'success') {
+  function handleCreateResult({ result }: { result: unknown }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const res = result as any
+    if (res.type === 'success') {
       uploadStatus = 'Novel created successfully! You can now upload chapters.'
       invalidateAll().then(() => {
-        if (result.data?.novelId) {
-          selectedNovelId = result.data.novelId.toString()
+        if (res.data?.novelId) {
+          selectedNovelId = res.data.novelId.toString()
           mode = 'upload'
         }
       })
     }
   }
 
-  function handleUploadResult({ result }: { result: any }) {
+  function handleUploadResult({ result }: { result: unknown }) {
     isUploading = false
-    if (result.type === 'success') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const res = result as any
+    if (res.type === 'success') {
       uploadStatus = 'Chapters uploaded/updated successfully!'
       // Clear file selection? Maybe keep it in case they want to do more?
       // text = ''
@@ -95,9 +100,20 @@
   </div>
 
   {#if uploadStatus}
-    <div class="p-4 mb-6 rounded-lg bg-green-50 text-green-700 border border-green-200 flex items-center gap-2">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+    <div
+      class="p-4 mb-6 rounded-lg bg-green-50 text-green-700 border border-green-200 flex items-center gap-2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+          clip-rule="evenodd"
+        />
       </svg>
       {uploadStatus}
     </div>
@@ -116,7 +132,9 @@
         class="flex flex-col gap-6"
       >
         <div>
-          <label for="novelId" class="block text-sm font-medium text-gray-700 mb-2">Select Novel</label>
+          <label for="novelId" class="block text-sm font-medium text-gray-700 mb-2"
+            >Select Novel</label
+          >
           <select
             id="novelId"
             name="novelId"
@@ -125,16 +143,21 @@
             required
           >
             <option value="" disabled>-- Choose a book --</option>
-            {#each data.novels as novel}
+            {#each data.novels as novel (novel.id)}
               <option value={novel.id}>{novel.novel_name} (ID: {novel.id})</option>
             {/each}
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Upload Text File</label>
-          <div class="border-2 border-dashed border-gray-300 rounded-lg p-1 hover:border-blue-500 transition-colors">
+          <label for="file-upload" class="block text-sm font-medium text-gray-700 mb-2"
+            >Upload Text File</label
+          >
+          <div
+            class="border-2 border-dashed border-gray-300 rounded-lg p-1 hover:border-blue-500 transition-colors"
+          >
             <Dropzone
+              id="file-upload"
               on:drop={handleFilesSelect}
               accept=".txt"
               containerClasses="bg-gray-50 hover:bg-gray-100 transition-colors rounded-lg cursor-pointer flex flex-col items-center justify-center p-8 h-48"
@@ -147,8 +170,19 @@
                 </div>
               {:else}
                 <div class="text-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-10 w-10 text-gray-400 mx-auto mb-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
                   </svg>
                   <p class="text-gray-600 font-medium">Click or drag file to upload</p>
                   <p class="text-sm text-gray-400 mt-1">Only .txt files supported</p>
@@ -161,15 +195,21 @@
         {#if parsedChapters.length > 0}
           <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
             <h3 class="font-semibold text-blue-900 mb-2">File Preview</h3>
-            <p class="text-blue-800 mb-2">Found <span class="font-bold">{parsedChapters.length}</span> chapters.</p>
-            <div class="max-h-40 overflow-y-auto text-sm text-blue-700 bg-white rounded border border-blue-100 p-2">
-              {#each parsedChapters.slice(0, 10) as chapter}
+            <p class="text-blue-800 mb-2">
+              Found <span class="font-bold">{parsedChapters.length}</span> chapters.
+            </p>
+            <div
+              class="max-h-40 overflow-y-auto text-sm text-blue-700 bg-white rounded border border-blue-100 p-2"
+            >
+              {#each parsedChapters.slice(0, 10) as chapter (chapter.number)}
                 <div class="py-1 border-b border-blue-50 last:border-0">
                   Chapter {chapter.number}: {chapter.title}
                 </div>
               {/each}
               {#if parsedChapters.length > 10}
-                <div class="py-1 text-gray-500 italic">...and {parsedChapters.length - 10} more</div>
+                <div class="py-1 text-gray-500 italic">
+                  ...and {parsedChapters.length - 10} more
+                </div>
               {/if}
             </div>
           </div>
@@ -200,7 +240,9 @@
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Novel Title</label>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1"
+              >Novel Title</label
+            >
             <input
               type="text"
               id="name"
@@ -224,7 +266,9 @@
         </div>
 
         <div>
-          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1"
+            >Description</label
+          >
           <textarea
             id="description"
             name="description"
@@ -248,7 +292,9 @@
             />
           </div>
           <div>
-            <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Cover Image URL</label>
+            <label for="image" class="block text-sm font-medium text-gray-700 mb-1"
+              >Cover Image URL</label
+            >
             <input
               type="url"
               id="image"

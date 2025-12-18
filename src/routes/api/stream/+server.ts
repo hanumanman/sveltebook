@@ -4,11 +4,13 @@ import { WebSocket } from 'ws'
 
 // Polyfill WebSocket for Edge TTS
 if (!global.WebSocket) {
-  global.WebSocket = WebSocket as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(globalThis as any).WebSocket = WebSocket
 }
 
 export const POST: RequestHandler = async ({ request }) => {
-  const { text, voice = 'vi-VN-NamMinhNeural' }: { text: string; voice?: string } = await request.json()
+  const { text, voice = 'vi-VN-NamMinhNeural' }: { text: string; voice?: string } =
+    await request.json()
 
   if (!text || text.trim().length === 0) {
     return new Response('Text is required', { status: 400 })
@@ -26,27 +28,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const stream = new ReadableStream({
       async start(controller) {
-        if (response instanceof ReadableStream) {
-          // If it's already a ReadableStream, pipe it through
-          const reader = response.getReader()
-          try {
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) break
-              controller.enqueue(value)
-            }
-            controller.close()
-          } catch (error) {
-            console.error('Edge TTS stream error:', error)
-            controller.error(error)
-          }
-        } else {
-          // If it's a buffer/blob, just enqueue it
-          const blob = response as Blob
-          const buffer = await blob.arrayBuffer()
-          controller.enqueue(new Uint8Array(buffer))
-          controller.close()
-        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const buffer = await (response as any).arrayBuffer()
+        controller.enqueue(new Uint8Array(buffer))
+        controller.close()
       }
     })
 

@@ -3,14 +3,23 @@
   import { preloadData } from '$app/navigation'
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
-  import { plainContentToParagraphs, scrollPage } from '$lib/utils'
-  import type { PageProps } from './$types'
-  import PageSettingsDialog from './PageSettingsDialog.svelte'
-  import ChapterListDialog from './ChapterListDialog.svelte'
-  import TTSButton from './TTSButton.svelte'
   import RollingBlindReader from '$lib/components/RollingBlindReader.svelte'
+  import { plainContentToParagraphs, scrollPage } from '$lib/utils'
+  import {
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    List,
+    ScanLine,
+    Settings
+  } from 'lucide-svelte'
+
+  import type { PageProps } from './$types'
+  import ChapterListDialog from './ChapterListDialog.svelte'
+  import PageSettingsDialog from './PageSettingsDialog.svelte'
+  import TTSButton from './TTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
-  import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Settings, List, Play, Pause, ScanLine } from 'lucide-svelte'
 
   let { data }: PageProps = $props()
   const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter)
@@ -56,19 +65,24 @@
   let startRatio = $state(0)
 
   // Infinite reading state
-  let loadedChapters = $state<Array<{ number: number; name: string; content: string; novelId: number }>>([])
+  let loadedChapters = $state<
+    Array<{ number: number; name: string; content: string; novelId: number }>
+  >([])
   let isLoadingNext = $state(false)
-  let currentMaxChapter = $state(chapter_number)
+  let currentMaxChapter = $state(0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let chaptersMetadata: any[] = [] // Cache for chapter metadata
 
   // Initialize loaded chapters with current chapter
   $effect(() => {
-    loadedChapters = [{
-      number: chapter_number,
-      name: chapter_name,
-      content: chapter_content,
-      novelId: novel_id
-    }]
+    loadedChapters = [
+      {
+        number: chapter_number,
+        name: chapter_name,
+        content: chapter_content,
+        novelId: novel_id
+      }
+    ]
     currentMaxChapter = chapter_number
   })
 
@@ -76,11 +90,11 @@
   $effect(() => {
     if ($pageSettingsStore.infiniteReading && chaptersMetadata.length === 0) {
       fetch(`/api/novel/${novel_id}/chapters`)
-        .then(res => res.json())
-        .then(chapters => {
+        .then((res) => res.json())
+        .then((chapters) => {
           chaptersMetadata = chapters
         })
-        .catch(err => console.error('Failed to prefetch chapters metadata:', err))
+        .catch((err) => console.error('Failed to prefetch chapters metadata:', err))
     }
   })
 
@@ -100,33 +114,41 @@
 
       try {
         // Use cached metadata if available
-        const nextChapterData = chaptersMetadata.find((ch: any) => ch.chapter_number === nextChapterNumber)
+        const nextChapterData = chaptersMetadata.find(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (ch: any) => ch.chapter_number === nextChapterNumber
+        )
 
         if (nextChapterData) {
           // Fetch full chapter content
           const chapterResponse = await fetch(`/${novel_id}/${nextChapterNumber}`)
           const html = await chapterResponse.text()
-          
+
           // Parse the response to extract chapter data
           const parser = new DOMParser()
           const doc = parser.parseFromString(html, 'text/html')
           const articleElement = doc.querySelector('article')
           const paragraphs = articleElement?.querySelectorAll('p')
-          const content = Array.from(paragraphs || []).map(p => p.textContent).join('\n\n')
+          const content = Array.from(paragraphs || [])
+            .map((p) => p.textContent)
+            .join('\n\n')
 
-          loadedChapters = [...loadedChapters, {
-            number: nextChapterNumber,
-            name: nextChapterData.chapter_name,
-            content: content,
-            novelId: novel_id
-          }]
+          loadedChapters = [
+            ...loadedChapters,
+            {
+              number: nextChapterNumber,
+              name: nextChapterData.chapter_name,
+              content: content,
+              novelId: novel_id
+            }
+          ]
 
           currentMaxChapter = nextChapterNumber
 
           // Update URL and browser history
           const newUrl = `/${novel_id}/${nextChapterNumber}`
           window.history.pushState({ chapterNumber: nextChapterNumber }, '', newUrl)
-          
+
           // Update page title
           document.title = `Chapter ${nextChapterNumber}: ${nextChapterData.chapter_name}`
 
@@ -148,7 +170,6 @@
       return () => window.removeEventListener('scroll', handleScroll)
     }
   })
-
 </script>
 
 <svelte:head>
@@ -157,9 +178,9 @@
 </svelte:head>
 
 <PageSettingsDialog open={openSettingsDialog} toggleDialogFn={toggleSettingsDialog} />
-<ChapterListDialog 
-  open={openChapterListDialog} 
-  toggleDialogFn={toggleChapterListDialog} 
+<ChapterListDialog
+  open={openChapterListDialog}
+  toggleDialogFn={toggleChapterListDialog}
   novelId={novel_id}
   currentChapterNumber={chapter_number}
 />
@@ -182,16 +203,18 @@
   <!-- Chapter Title -->
   <div class="mb-4 sm:mb-6 gap-4 border-b border-gray-500 pb-4 sm:pb-6">
     <div>
-      <h1 class="pb-2 sm:pb-3 text-base sm:text-xl text-gray-600 dark:text-gray-400">Chapter {chapter_number}</h1>
+      <h1 class="pb-2 sm:pb-3 text-base sm:text-xl text-gray-600 dark:text-gray-400">
+        Chapter {chapter_number}
+      </h1>
       <h2 class="mb-1 text-xl sm:text-2xl md:text-3xl font-bold leading-tight">{chapter_name}</h2>
     </div>
 
     <!-- Page Controls -->
     <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pt-3">
-      <TTSButton 
-        text={chapter_content} 
-        nextPageUrl={`/${novel_id}/${nextChapter}`} 
-        title={data.novel.title}
+      <TTSButton
+        text={chapter_content}
+        nextPageUrl={`/${novel_id}/${nextChapter}`}
+        title={data.novel.novel_name}
         chapterTitle={`Chapter ${chapter_number}: ${chapter_name}`}
       />
 
@@ -201,29 +224,33 @@
             if (!$pageSettingsStore.rollingBlindActive) {
               // Enter Mode
               // Calculate start ratio based on scroll position
-              const scrollY = window.scrollY;
-              const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+              const scrollY = window.scrollY
+              const totalHeight = document.documentElement.scrollHeight - window.innerHeight
               // Subtract a significantly larger buffer (e.g. 0.15 or 15%) to ensure we don't skip the current line
-              const rawRatio = totalHeight > 0 ? scrollY / totalHeight : 0;
-              const ratio = Math.max(0, rawRatio - 0.15); 
-              
+              const rawRatio = totalHeight > 0 ? scrollY / totalHeight : 0
+              const ratio = Math.max(0, rawRatio - 0.15)
+
               // Store ratio in a local variable to pass to component
               // We can't pass it directly to store as it's transient
               // Let's use a local state for startRatio
-              startRatio = ratio;
-              
-              $pageSettingsStore.rollingBlindActive = true;
-              isRollingBlindPlaying = false; // Start paused so user can read first
+              startRatio = ratio
+
+              $pageSettingsStore.rollingBlindActive = true
+              isRollingBlindPlaying = false // Start paused so user can read first
             } else {
               // Exit Mode
-              $pageSettingsStore.rollingBlindActive = false;
-              isRollingBlindPlaying = false;
+              $pageSettingsStore.rollingBlindActive = false
+              isRollingBlindPlaying = false
               // Ideally we should sync back the scroll position, but that's harder.
               // For now, just exit.
             }
           }}
-          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700 {$pageSettingsStore.rollingBlindActive ? 'bg-blue-100 dark:bg-blue-900' : ''}"
-          title={$pageSettingsStore.rollingBlindActive ? 'Exit Rolling Blind' : 'Start Rolling Blind'}
+          class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700 {$pageSettingsStore.rollingBlindActive
+            ? 'bg-blue-100 dark:bg-blue-900'
+            : ''}"
+          title={$pageSettingsStore.rollingBlindActive
+            ? 'Exit Rolling Blind'
+            : 'Start Rolling Blind'}
         >
           <ScanLine size={18} class="sm:w-5 sm:h-5" />
         </button>
@@ -281,11 +308,13 @@
       {#if idx > 0}
         <!-- Chapter separator for subsequent chapters -->
         <div class="my-8 border-t-2 border-gray-500 pt-6">
-          <h2 class="text-base sm:text-xl text-gray-600 dark:text-gray-400 mb-2">Chapter {chap.number}</h2>
+          <h2 class="text-base sm:text-xl text-gray-600 dark:text-gray-400 mb-2">
+            Chapter {chap.number}
+          </h2>
           <h3 class="text-xl sm:text-2xl md:text-3xl font-bold leading-tight mb-4">{chap.name}</h3>
         </div>
       {/if}
-      
+
       <article
         style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
         class="prose prose-lg dark:prose-invert max-w-none pb-4"
@@ -310,14 +339,14 @@
     {/if}
   {:else if $pageSettingsStore.rollingBlindActive}
     <!-- Rolling Blind Mode -->
-    <RollingBlindReader 
-      text={plainContentToParagraphs(chapter_content).join('\n\n')} 
+    <RollingBlindReader
+      text={plainContentToParagraphs(chapter_content).join('\n\n')}
       bind:isPlaying={isRollingBlindPlaying}
       speed={$pageSettingsStore.rollingBlindSpeed}
       fontSize={$pageSettingsStore.fontSize}
       lineHeight={$pageSettingsStore.lineHeight}
       theme={themes[$pageSettingsStore.theme]}
-      startRatio={startRatio}
+      {startRatio}
     />
   {:else}
     <!-- Single chapter mode (default behavior) -->
@@ -337,37 +366,42 @@
     {/if}
   {/if}
 
-
   <!-- Bottom Chapter Navigation (hidden in infinite reading mode) -->
   {#if !$pageSettingsStore.infiniteReading}
-  <div class="flex flex-col gap-2 border-t border-gray-200 pt-3 sm:pt-4 dark:border-gray-700">
-    {#if hasNextChapter}
-      <LinkButton class="border border-gray-700 text-sm sm:text-base" href="/{novel_id}/{nextChapter}">
-        Next Chapter
-        <ChevronRight size={18} class="sm:w-5 sm:h-5" />
-      </LinkButton>
-    {:else}
-      <div></div>
-    {/if}
+    <div class="flex flex-col gap-2 border-t border-gray-200 pt-3 sm:pt-4 dark:border-gray-700">
+      {#if hasNextChapter}
+        <LinkButton
+          class="border border-gray-700 text-sm sm:text-base"
+          href="/{novel_id}/{nextChapter}"
+        >
+          Next Chapter
+          <ChevronRight size={18} class="sm:w-5 sm:h-5" />
+        </LinkButton>
+      {:else}
+        <div></div>
+      {/if}
 
-    {#if hasPrevChapter}
-      <LinkButton
-        href="/{novel_id}/{prevChapter}"
+      {#if hasPrevChapter}
+        <LinkButton
+          href="/{novel_id}/{prevChapter}"
+          class="bg-pennBlue-900 w-full border border-gray-700 text-sm sm:text-base"
+        >
+          <div class="flex items-center gap-2">
+            <ChevronLeft size={18} class="sm:w-5 sm:h-5" />
+            <span>Previous Chapter</span>
+          </div>
+        </LinkButton>
+      {:else}
+        <div></div>
+      {/if}
+      <Button
         class="bg-pennBlue-900 w-full border border-gray-700 text-sm sm:text-base"
+        onclick={() => scrollPage('top')}
       >
-        <div class="flex items-center gap-2">
-          <ChevronLeft size={18} class="sm:w-5 sm:h-5" />
-          <span>Previous Chapter</span>
-        </div>
-      </LinkButton>
-    {:else}
-      <div></div>
-    {/if}
-    <Button class="bg-pennBlue-900 w-full border border-gray-700 text-sm sm:text-base" onclick={() => scrollPage('top')}>
-      <span>Go to Top</span>
-      <ChevronUp size={18} class="sm:w-5 sm:h-5" />
-    </Button>
-  </div>
+        <span>Go to Top</span>
+        <ChevronUp size={18} class="sm:w-5 sm:h-5" />
+      </Button>
+    </div>
   {/if}
 </div>
 

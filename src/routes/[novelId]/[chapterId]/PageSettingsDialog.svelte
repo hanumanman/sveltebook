@@ -1,9 +1,9 @@
 <script lang="ts">
-  import VoiceSelector from '$lib/components/VoiceSelector.svelte'
-  import Button from '$lib/components/Button.svelte'
-  import TextReader from '$lib/services/textReader.svelte'
   import { browser } from '$app/environment'
-  import { fly, fade } from 'svelte/transition'
+  import Button from '$lib/components/Button.svelte'
+  import VoiceSelector from '$lib/components/VoiceSelector.svelte'
+  import TextReader from '$lib/services/textReader.svelte'
+  import { fade, fly } from 'svelte/transition'
 
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
@@ -57,13 +57,21 @@
     transition:fade={{ duration: 200 }}
     class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
     onclick={toggleDialogFn}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        toggleDialogFn()
+      }
+    }}
+    role="button"
+    tabindex="0"
   ></div>
 
   <!-- Dialog content - bottom sheet on mobile, centered on desktop -->
   <div
     transition:fly={{ y: 500, duration: 300 }}
-    class="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 
-           bg-pennBlue-900 rounded-t-2xl md:rounded-2xl border-2 border-gray-400 
+    class="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2
+           bg-pennBlue-900 rounded-t-2xl md:rounded-2xl border-2 border-gray-400
            max-h-[85vh] md:max-h-[90vh] overflow-y-auto z-50
            w-full md:max-w-xl"
   >
@@ -111,7 +119,9 @@
           {#each themesArray as { key, value }, i (i)}
             <button
               class="aspect-square rounded-lg border-2 transition-all text-2xl font-bold
-                     {$pageSettingsStore.theme === key ? 'border-white scale-105' : 'border-transparent'}"
+                     {$pageSettingsStore.theme === key
+                ? 'border-white scale-105'
+                : 'border-transparent'}"
               style="color:{value.color}; background-color:{value.background};"
               onclick={() => {
                 $pageSettingsStore.theme = key as keyof typeof themes
@@ -125,8 +135,12 @@
 
       <div class="w-full border-t border-gray-600 pt-4">
         <h2 class="text-base md:text-lg mb-2">Infinite Reading Mode</h2>
-        <p class="text-sm text-gray-400 mb-3">Automatically load next chapter when scrolling to bottom</p>
-        <label class="flex items-center gap-3 cursor-pointer p-3 bg-pennBlue-800/50 rounded-lg hover:bg-pennBlue-800">
+        <p class="text-sm text-gray-400 mb-3">
+          Automatically load next chapter when scrolling to bottom
+        </p>
+        <label
+          class="flex items-center gap-3 cursor-pointer p-3 bg-pennBlue-800/50 rounded-lg hover:bg-pennBlue-800"
+        >
           <input
             type="checkbox"
             bind:checked={$pageSettingsStore.infiniteReading}
@@ -139,7 +153,9 @@
       <div class="w-full border-t border-gray-600 pt-4">
         <h2 class="text-base md:text-lg mb-2">Rolling Blind Mode</h2>
         <p class="text-sm text-gray-400 mb-3">Enable the Rolling Blind reading feature</p>
-        <label class="flex items-center gap-3 cursor-pointer p-3 bg-pennBlue-800/50 rounded-lg hover:bg-pennBlue-800 mb-4">
+        <label
+          class="flex items-center gap-3 cursor-pointer p-3 bg-pennBlue-800/50 rounded-lg hover:bg-pennBlue-800 mb-4"
+        >
           <input
             type="checkbox"
             bind:checked={$pageSettingsStore.rollingBlindFeatureEnabled}
@@ -147,7 +163,7 @@
           />
           <span class="text-base">Show Rolling Blind Button</span>
         </label>
-        
+
         {#if $pageSettingsStore.rollingBlindFeatureEnabled}
           <h3 class="text-sm md:text-base mb-2">Blind Speed</h3>
           <div class="flex gap-3 items-center">

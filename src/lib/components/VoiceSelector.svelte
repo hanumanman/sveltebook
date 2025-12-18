@@ -25,8 +25,10 @@
 
 <div class="flex flex-col gap-2">
   <span class="text-sm font-medium">Select Voice:</span>
-  {#each voices as voice}
-    <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded">
+  {#each voices as voice (voice.id)}
+    <label
+      class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded"
+    >
       <input
         type="radio"
         name="voice"

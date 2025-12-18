@@ -1,152 +1,153 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount } from 'svelte'
 
-  export let text: string = '';
-  export let isPlaying: boolean = false;
-  export let speed: number = 20; // % per second
-  export let startRatio: number = 0; // 0 to 1, position to start from
-  
+  export let text: string = ''
+  export let isPlaying: boolean = false
+  export let speed: number = 20 // % per second
+  export let startRatio: number = 0 // 0 to 1, position to start from
+
   // New props for customization
-  export let fontSize: number = 16;
-  export let lineHeight: number = 1.6;
-  export let theme: { background: string; color: string } = { background: 'white', color: 'black' };
+  export let fontSize: number = 16
+  export let lineHeight: number = 1.6
+  export let theme: { background: string; color: string } = { background: 'white', color: 'black' }
 
-  const dispatch = createEventDispatcher();
-
-  let container: HTMLDivElement;
-  let pages: string[] = [];
-  let currentIndex: number = 0;
-  let progress: number = 0; // 0 to 100
-  let lastTime: number = 0;
-  let animationFrameId: number;
+  let container: HTMLDivElement
+  let pages: string[] = []
+  let currentIndex: number = 0
+  let progress: number = 0 // 0 to 100
+  let lastTime: number = 0
+  let animationFrameId: number
 
   // Pagination logic
   async function paginate() {
-    if (!container || !text) return;
-    
+    if (!container || !text) return
+
     // Reset
-    pages = [];
-    currentIndex = 0;
-    progress = 0;
+    pages = []
+    currentIndex = 0
+    progress = 0
 
     // Create a temporary measurement div
-    const measureDiv = document.createElement('div');
-    measureDiv.style.position = 'absolute';
-    measureDiv.style.visibility = 'hidden';
+    const measureDiv = document.createElement('div')
+    measureDiv.style.position = 'absolute'
+    measureDiv.style.visibility = 'hidden'
     // Match .layer styles exactly
-    measureDiv.style.width = `${container.clientWidth}px`;
-    measureDiv.style.height = `${container.clientHeight}px`; // Enforce height constraint for measurement
-    measureDiv.style.padding = '0'; // Match .layer padding
-    measureDiv.style.boxSizing = 'border-box'; // Match .layer box-sizing
-    
-    // Apply dynamic styles
-    measureDiv.style.fontSize = `${fontSize}px`;
-    measureDiv.style.lineHeight = `${lineHeight}`;
-    measureDiv.style.fontFamily = getComputedStyle(container).fontFamily;
-    measureDiv.style.whiteSpace = 'pre-wrap'; 
-    
-    document.body.appendChild(measureDiv);
+    measureDiv.style.width = `${container.clientWidth}px`
+    measureDiv.style.height = `${container.clientHeight}px` // Enforce height constraint for measurement
+    measureDiv.style.padding = '0' // Match .layer padding
+    measureDiv.style.boxSizing = 'border-box' // Match .layer box-sizing
 
-    const words = text.split(/(\s+)/); // Split by whitespace but keep delimiters
-    let currentPage = '';
-    
+    // Apply dynamic styles
+    measureDiv.style.fontSize = `${fontSize}px`
+    measureDiv.style.lineHeight = `${lineHeight}`
+    measureDiv.style.fontFamily = getComputedStyle(container).fontFamily
+    measureDiv.style.whiteSpace = 'pre-wrap'
+
+    document.body.appendChild(measureDiv)
+
+    const words = text.split(/(\s+)/) // Split by whitespace but keep delimiters
+    let currentPage = ''
+
     // Track character count to find start page
-    let charCount = 0;
-    const totalChars = text.length;
-    const targetCharIndex = startRatio * totalChars;
-    let startPageIndex = 0;
-    let currentCharsInPage = 0;
+    let charCount = 0
+    const totalChars = text.length
+    const targetCharIndex = startRatio * totalChars
+    let startPageIndex = 0
+    let currentCharsInPage = 0
 
     for (let i = 0; i < words.length; i++) {
-        const word = words[i];
-        const testPage = currentPage + word;
-        measureDiv.textContent = testPage;
-        
-        // Check if we have overflowed the container height
-        if (measureDiv.scrollHeight > measureDiv.clientHeight && currentPage.length > 0) {
-            pages.push(currentPage);
-            
-            // Check if this page contains our target start index
-            if (charCount + currentCharsInPage < targetCharIndex && charCount + currentCharsInPage + currentPage.length >= targetCharIndex) {
-                 // This logic is approximate because we are iterating words.
-                 // Better: if charCount passed target, we are past it.
-            }
-            // Actually, simpler: just track total chars pushed so far.
-            if (charCount <= targetCharIndex) {
-                startPageIndex = pages.length - 1;
-            }
+      const word = words[i]
+      const testPage = currentPage + word
+      measureDiv.textContent = testPage
 
-            charCount += currentPage.length;
-            currentPage = word;
-            currentCharsInPage = word.length;
-            
-            // Re-measure with just the new word
-            measureDiv.textContent = currentPage;
-        } else {
-            currentPage = testPage;
-            currentCharsInPage = testPage.length; // Approximate
+      // Check if we have overflowed the container height
+      if (measureDiv.scrollHeight > measureDiv.clientHeight && currentPage.length > 0) {
+        pages.push(currentPage)
+
+        // Check if this page contains our target start index
+        if (
+          charCount + currentCharsInPage < targetCharIndex &&
+          charCount + currentCharsInPage + currentPage.length >= targetCharIndex
+        ) {
+          // This logic is approximate because we are iterating words.
+          // Better: if charCount passed target, we are past it.
         }
+        // Actually, simpler: just track total chars pushed so far.
+        if (charCount <= targetCharIndex) {
+          startPageIndex = pages.length - 1
+        }
+
+        charCount += currentPage.length
+        currentPage = word
+        currentCharsInPage = word.length
+
+        // Re-measure with just the new word
+        measureDiv.textContent = currentPage
+      } else {
+        currentPage = testPage
+        currentCharsInPage = testPage.length // Approximate
+      }
     }
     if (currentPage) {
-        pages.push(currentPage);
-        if (charCount <= targetCharIndex) {
-             startPageIndex = pages.length - 1;
-        }
+      pages.push(currentPage)
+      if (charCount <= targetCharIndex) {
+        startPageIndex = pages.length - 1
+      }
     }
-    
-    document.body.removeChild(measureDiv);
-    pages = pages; // Trigger reactivity
-    
+
+    document.body.removeChild(measureDiv)
+    pages = pages // Trigger reactivity
+
     // Jump to start page
     if (startRatio > 0 && startPageIndex > 0) {
-        currentIndex = startPageIndex;
+      currentIndex = startPageIndex
     }
   }
 
   // Animation Loop
   function animate(time: number) {
     if (lastTime !== 0 && isPlaying) {
-      const deltaTime = (time - lastTime) / 1000; // seconds
-      progress += speed * deltaTime;
+      const deltaTime = (time - lastTime) / 1000 // seconds
+      progress += speed * deltaTime
 
       if (progress >= 100) {
-        progress = 0;
-        currentIndex++;
+        progress = 0
+        currentIndex++
         if (currentIndex >= pages.length - 1) {
-            isPlaying = false;
-            progress = 100; // Keep it finished
+          isPlaying = false
+          progress = 100 // Keep it finished
         }
       }
     }
-    lastTime = time;
-    animationFrameId = requestAnimationFrame(animate);
+    lastTime = time
+    animationFrameId = requestAnimationFrame(animate)
   }
 
   onMount(() => {
-    paginate();
-    animationFrameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrameId);
-  });
+    paginate()
+    animationFrameId = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(animationFrameId)
+  })
 
   // Re-paginate on text/style change or resize
   $: if (text && container && fontSize && lineHeight) {
-      paginate();
+    paginate()
   }
 
   // Handle user interaction
   function handleScroll() {
-      // Scroll -> Pause
-      isPlaying = false;
+    // Scroll -> Pause
+    isPlaying = false
   }
-  
+
   function handleClick() {
-      // Click -> Toggle Play/Pause
-      isPlaying = !isPlaying;
+    // Click -> Toggle Play/Pause
+    isPlaying = !isPlaying
   }
 </script>
 
-<div 
-  class="rolling-blind-container" 
+<div
+  class="rolling-blind-container"
   bind:this={container}
   style="background: {theme.background}; color: {theme.color}; font-size: {fontSize}px; line-height: {lineHeight};"
   on:wheel|passive={handleScroll}
@@ -154,7 +155,9 @@
   on:click={handleClick}
   role="button"
   tabindex="0"
-  on:keydown={(e) => { if(e.key === ' ' || e.key === 'Enter') handleClick(); }}
+  on:keydown={(e) => {
+    if (e.key === ' ' || e.key === 'Enter') handleClick()
+  }}
 >
   {#if pages.length > 0}
     <!-- Layer A (Background) - Current Page -->
@@ -164,12 +167,15 @@
 
     <!-- Layer B (Foreground) - Next Page -->
     {#if currentIndex + 1 < pages.length}
-      <div 
+      <div
         class="layer-b-wrapper"
         style="height: {progress}%; background: {theme.background}; --line-color: {theme.color};"
       >
-        <div class="layer layer-b-inner" style="background: {theme.background}; color: {theme.color};">
-            {pages[currentIndex + 1] || ''}
+        <div
+          class="layer layer-b-inner"
+          style="background: {theme.background}; color: {theme.color};"
+        >
+          {pages[currentIndex + 1] || ''}
         </div>
       </div>
     {/if}

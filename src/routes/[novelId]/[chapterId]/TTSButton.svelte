@@ -1,9 +1,8 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
-  import { page } from '$app/stores'
   import TextReader from '$lib/services/textReader.svelte'
-  import { Play, Volume2, Loader2 } from 'lucide-svelte'
+  import { Loader2, Play, Volume2 } from 'lucide-svelte'
   import { onDestroy, onMount } from 'svelte'
 
   interface Props {
@@ -71,7 +70,10 @@
 <div class="relative inline-flex items-center justify-center">
   <!-- Progress Ring -->
   {#if tts.getState === 'playing' || tts.getState === 'paused' || tts.getState === 'loading'}
-    <svg class="absolute -top-1 -left-1 w-[calc(100%+8px)] h-[calc(100%+8px)] rotate-[-90deg]" viewBox="0 0 44 44">
+    <svg
+      class="absolute -top-1 -left-1 w-[calc(100%+8px)] h-[calc(100%+8px)] rotate-[-90deg]"
+      viewBox="0 0 44 44"
+    >
       <circle
         class="text-gray-200 dark:text-gray-700"
         stroke-width="3"

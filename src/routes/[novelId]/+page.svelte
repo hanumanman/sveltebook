@@ -1,11 +1,11 @@
 <script lang="ts">
+  import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
   import ProgressBar from '$lib/components/ProgressBar.svelte'
-  import ChapterListDialog from './[chapterId]/ChapterListDialog.svelte'
-  import Button from '$lib/components/Button.svelte'
   import { List } from 'lucide-svelte'
 
   import type { PageProps } from './$types'
+  import ChapterListDialog from './[chapterId]/ChapterListDialog.svelte'
 
   let { data }: PageProps = $props()
   const { novel, progress, chapters } = $derived(data)
@@ -25,10 +25,10 @@
       ? 0
       : Math.round((progress?.last_chapter_number / chapter_count) * 100)
   )
-  
+
   // Show latest 20 chapters
   const displayedChapters = $derived(chapters.slice(0, 20))
-  
+
   let openChapterListDialog = $state(false)
   function toggleChapterListDialog() {
     openChapterListDialog = !openChapterListDialog
@@ -40,9 +40,9 @@
   <meta name="description" content={novel_description} />
 </svelte:head>
 
-<ChapterListDialog 
-  open={openChapterListDialog} 
-  toggleDialogFn={toggleChapterListDialog} 
+<ChapterListDialog
+  open={openChapterListDialog}
+  toggleDialogFn={toggleChapterListDialog}
   novelId={id}
   currentChapterNumber={progress?.last_chapter_number || 1}
 />
@@ -118,7 +118,7 @@
             <div class="flex items-center gap-3">
               <span class="text-sm text-gray-400">{chapters.length} total</span>
               {#if chapters.length > 20}
-                <Button 
+                <Button
                   class="flex items-center gap-2 bg-blue-900/30 border border-blue-800/50 hover:bg-blue-900/50"
                   onclick={toggleChapterListDialog}
                 >
@@ -128,17 +128,21 @@
               {/if}
             </div>
           </div>
-          
+
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {#each displayedChapters as chapter (chapter.id)}
               <a
                 href={`/${id}/${chapter.chapter_number}`}
                 class="group flex flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800/50 p-3 transition-all hover:border-blue-500/50 hover:bg-gray-800 hover:shadow-md hover:shadow-blue-900/10"
               >
-                <span class="mb-2 flex h-7 w-7 shrink-0 items-center justify-center rounded bg-gray-900 text-xs font-mono font-medium text-gray-500 group-hover:text-blue-400">
+                <span
+                  class="mb-2 flex h-7 w-7 shrink-0 items-center justify-center rounded bg-gray-900 text-xs font-mono font-medium text-gray-500 group-hover:text-blue-400"
+                >
                   {chapter.chapter_number}
                 </span>
-                <span class="line-clamp-2 text-xs font-medium text-gray-300 group-hover:text-white leading-tight">
+                <span
+                  class="line-clamp-2 text-xs font-medium text-gray-300 group-hover:text-white leading-tight"
+                >
                   {chapter.chapter_name}
                 </span>
               </a>

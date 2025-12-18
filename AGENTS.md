@@ -4,20 +4,21 @@ This file provides guidelines for AI agents working on this codebase.
 
 ### Build, Lint, and Test
 
-- **Build:** `bun run build`
-- **Lint:** `bun run lint`
-- **Format:** `bun run format`
-- **Type Check:** `bun run check`
-- **Test:** This project does not have a dedicated test script. Please use `bun run check` to validate changes.
+- **Build:** `bun run build` (includes formatting)
+- **Lint:** `bun run lint` (prettier check + eslint)
+- **Format:** `bun run format` (prettier write)
+- **Type Check:** `bun run check` (svelte-kit sync + svelte-check)
+- **Test:** No dedicated test script exists. Use `bun run check` for validation. No single-test command available.
 
 ### Code Style
 
-- **Framework:** SvelteKit
-- **Formatting:** Use Prettier (`bun run format`). Adhere to the existing `.prettierrc` configuration.
-- **Imports:** Use `@trivago/prettier-plugin-sort-imports` for import sorting.
-- **Naming:** Follow Svelte/SvelteKit conventions for component and file naming. Use camelCase for variables and functions.
-- **Types:** This project uses TypeScript. Ensure all new code is strongly typed.
-- **Error Handling:** Use try/catch blocks for asynchronous operations and database queries.
-- **Database:** Use Drizzle ORM for all database interactions. Schema is defined in `src/lib/server/db/schema.ts`.
-- **Authentication:** Use Lucia for authentication. Configuration is in `src/lib/server/auth/auth.ts`.
-- **Styling:** Use Tailwind CSS for styling.
+- **Framework:** SvelteKit with TypeScript
+- **Formatting:** Prettier with config: 100 printWidth, single quotes, no semicolons, no trailing commas, tabs=false
+- **Imports:** Sorted with @trivago/prettier-plugin-sort-imports (custom order: @core, @server, @ui, then relative)
+- **Naming:** SvelteKit conventions; camelCase for vars/functions; PascalCase for components
+- **Types:** Strongly typed TypeScript required; use interfaces for complex objects
+- **Error Handling:** try/catch for async ops and DB queries; throw descriptive errors
+- **Database:** Drizzle ORM only; schema in src/lib/server/db/schema.ts
+- **Authentication:** Lucia auth; config in src/lib/server/auth/auth.ts
+- **Styling:** Tailwind CSS; use clsx/tailwind-merge for conditional classes
+- **Linting:** ESLint with TS/recommended; ignore unused vars starting with \_

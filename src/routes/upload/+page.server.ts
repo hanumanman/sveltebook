@@ -64,7 +64,10 @@ async function uploadChapters(chapters: TInsertChapter[]) {
     // Check if chapter already exists to avoid unique constraint error
     const existing = await db.query.chaptersTable.findFirst({
       where: (chapters, { and, eq }) =>
-        and(eq(chapters.novel_id, chapter.novel_id), eq(chapters.chapter_number, chapter.chapter_number))
+        and(
+          eq(chapters.novel_id, chapter.novel_id),
+          eq(chapters.chapter_number, chapter.chapter_number)
+        )
     })
 
     if (!existing) {
@@ -81,7 +84,10 @@ async function updateChapters(chapters: TInsertChapter[]) {
   for (const chapter of chapters) {
     const existing = await db.query.chaptersTable.findFirst({
       where: (chapters, { and, eq }) =>
-        and(eq(chapters.novel_id, chapter.novel_id), eq(chapters.chapter_number, chapter.chapter_number))
+        and(
+          eq(chapters.novel_id, chapter.novel_id),
+          eq(chapters.chapter_number, chapter.chapter_number)
+        )
     })
 
     if (existing) {
@@ -113,9 +119,7 @@ function parseChapter(text: string, novel_id: number) {
   const chapterRegex = /(?:CHƯƠNG|Chương) (\d+):\s*([^\n]+)/g
   const chapters = []
   let match
-  let chapterNumber = 0
   while ((match = chapterRegex.exec(text)) !== null) {
-    chapterNumber += 1
     const chapterTitle = match[2].trim()
     const startIndex = match.index + match[0].length
     const endIndex = chapterRegex.lastIndex
