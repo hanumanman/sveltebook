@@ -3,22 +3,24 @@
   import { onMount } from 'svelte'
 
   const voices = [
-    { id: 'vi-VN-HoaiMyNeural', name: 'HoaiMy (Female)', gender: 'female' },
-    { id: 'vi-VN-NamMinhNeural', name: 'NamMinh (Male)', gender: 'male' }
-  ]
+    { id: 'female', name: 'Female', gender: 'female' },
+    { id: 'male', name: 'Male', gender: 'male' }
+  ] as const
 
-  let selectedVoice = $state('vi-VN-NamMinhNeural')
+  let selectedVoice = $state(
+    browser ? (localStorage.getItem('tiktokVoice') as 'male' | 'female') || 'female' : 'female'
+  )
 
   onMount(() => {
     if (browser) {
-      selectedVoice = localStorage.getItem('selectedVoice') || 'vi-VN-NamMinhNeural'
+      selectedVoice = (localStorage.getItem('tiktokVoice') as 'male' | 'female') || 'female'
     }
   })
 
-  function handleVoiceChange(voiceId: string) {
+  function handleVoiceChange(voiceId: 'male' | 'female') {
     selectedVoice = voiceId
     if (browser) {
-      localStorage.setItem('selectedVoice', voiceId)
+      localStorage.setItem('tiktokVoice', voiceId)
     }
   }
 </script>

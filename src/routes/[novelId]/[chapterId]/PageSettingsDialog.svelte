@@ -2,7 +2,7 @@
   import { browser } from '$app/environment'
   import Button from '$lib/components/Button.svelte'
   import VoiceSelector from '$lib/components/VoiceSelector.svelte'
-  import TextReader from '$lib/services/textReader.svelte'
+  import TikTokPlayer from '$lib/services/tiktokPlayer.svelte'
   import { fade, fly } from 'svelte/transition'
 
   import { pageSettingsStore, themes } from './pageSettingsStore'
@@ -14,7 +14,7 @@
 
   let { open, toggleDialogFn }: Props = $props()
 
-  const tts = TextReader.getInstance()
+  const tts = TikTokPlayer.getInstance()
 
   // Playback speed state
   let playbackSpeed = $state(1.0)
@@ -22,7 +22,7 @@
   // Load playback speed from localStorage
   $effect(() => {
     if (!browser) return
-    const savedSpeed = localStorage.getItem('playbackRate')
+    const savedSpeed = localStorage.getItem('tiktokPlaybackRate')
     if (savedSpeed) {
       playbackSpeed = parseFloat(savedSpeed)
     }
@@ -153,6 +153,26 @@
       <div class="w-full border-t border-gray-600 pt-4">
         <h2 class="text-base md:text-lg mb-3">TTS Voice</h2>
         <VoiceSelector />
+      </div>
+
+      <div class="w-full border-t border-gray-600 pt-4">
+        <h2 class="text-base md:text-lg mb-3">Autoplay</h2>
+        <p class="text-sm text-gray-400 mb-3">Automatically start TTS when opening a new chapter</p>
+        <label
+          class="flex items-center gap-3 cursor-pointer p-3 bg-pennBlue-800/50 rounded-lg hover:bg-pennBlue-800"
+        >
+          <input
+            type="checkbox"
+            checked={localStorage.getItem('tiktokAutoplay') === 'true'}
+            onchange={(e) => {
+              if (browser) {
+                localStorage.setItem('tiktokAutoplay', e.currentTarget.checked.toString())
+              }
+            }}
+            class="w-6 h-6 rounded border-gray-300 cursor-pointer accent-blue-500"
+          />
+          <span class="text-base">Enable autoplay</span>
+        </label>
       </div>
 
       <div class="w-full">
