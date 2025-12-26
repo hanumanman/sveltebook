@@ -56,6 +56,55 @@ function decodeBase64Audio(audioData: string): BlobPart {
   return bytes
 }
 
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3,
+  timeoutMs = 30000
+): Promise<Response> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+
+      if (response.ok) {
+        return response
+      }
+
+      const text = await response.text()
+      console.error(`[TikTok TTS] Attempt ${attempt}/${maxRetries} failed:`, {
+        status: response.status,
+        statusText: response.statusText,
+        body: text.substring(0, 500)
+      })
+
+      if (attempt === maxRetries) {
+        throw new Error(
+          `Failed after ${maxRetries} attempts. Status: ${response.status} ${response.statusText}. Response: ${text.substring(0, 200)}`
+        )
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000))
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error
+      }
+
+      console.error(`[TikTok TTS] Attempt ${attempt}/${maxRetries} error:`, error)
+      await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000))
+    }
+  }
+
+  throw new Error('Failed after retries')
+}
+
 export const POST: RequestHandler = async ({ request }) => {
   const body = await request.json()
   const text = body?.text
@@ -75,7 +124,18 @@ export const POST: RequestHandler = async ({ request }) => {
   const URL = `${BASE_URL}/?text_speaker=${voice}&req_text=${req_text}&speaker_map_type=${SPEAKER_MAP_TYPE}&aid=${AID}`
 
   try {
-    const result = await fetch(URL, { method: 'POST', headers: headers }).then((res) => res.json())
+    const response = await fetchWithRetry(URL, { method: 'POST', headers: headers })
+
+    const contentType = response.headers.get('content-type')
+    if (!contentType?.includes('application/json')) {
+      const text = await response.text()
+      console.error('[TikTok TTS] Non-JSON response:', text.substring(0, 500))
+      throw new Error(
+        `TikTok API returned non-JSON response (Content-Type: ${contentType}). Response: ${text.substring(0, 200)}`
+      )
+    }
+
+    const result = await response.json()
     const status_code = result?.status_code
     if (status_code !== 0) return handleStatusError(status_code)
     const encoded_voice = result?.data?.v_str
@@ -89,6 +149,8 @@ export const POST: RequestHandler = async ({ request }) => {
       }
     })
   } catch (err) {
-    return error(500, `tiktok-tts ${err}`)
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    console.error('[TikTok TTS] Error:', errorMessage)
+    return error(500, `tiktok-tts ${errorMessage}`)
   }
 }

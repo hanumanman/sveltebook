@@ -23,6 +23,11 @@
     return (localStorage.getItem('tiktokVoice') as 'male' | 'female') || 'female'
   }
 
+  function isAutoplayEnabled(): boolean {
+    if (!browser) return false
+    return localStorage.getItem('tiktokAutoplay') === 'true'
+  }
+
   function handleClick() {
     switch (tiktokPlayer.getState) {
       case 'paused':
@@ -32,7 +37,7 @@
         tiktokPlayer.pause()
         break
       case 'stopped':
-        tiktokPlayer.play(text, getSelectedVoice(), gotoNextPage)
+        tiktokPlayer.play(text, getSelectedVoice(), isAutoplayEnabled() ? gotoNextPage : undefined)
         break
       case 'loading':
         break
