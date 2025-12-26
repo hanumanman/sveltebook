@@ -9,6 +9,7 @@
   import type { PageProps } from './$types'
   import ChapterListDialog from './ChapterListDialog.svelte'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
+  import TiktokTTSButton from './TiktokTTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
   let { data }: PageProps = $props()
@@ -157,29 +158,6 @@
       return () => window.removeEventListener('scroll', handleScroll)
     }
   })
-
-  async function generateTTVoice(text: string) {
-    const res = await fetch('/api/tiktok-tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: chapter_content })
-    })
-
-    if (!res.ok) {
-      const error = await res.json().then((data) => data.error)
-      return alert(error)
-    }
-
-    const blob = await res.blob()
-
-    const audio = new Audio()
-    audio.src = URL.createObjectURL(blob)
-    await audio.play()
-
-    audio.addEventListener('ended', () => {
-      URL.revokeObjectURL(audio.src)
-    })
-  }
 </script>
 
 <svelte:head>
@@ -221,20 +199,7 @@
 
     <!-- Page Controls -->
     <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pt-3">
-      <!-- <TTSButton
-        text={chapter_content}
-        nextPageUrl={`/${novel_id}/${nextChapter}`}
-        title={data.novel.novel_name}
-        chapterTitle={`Chapter ${chapter_number}: ${chapter_name}`}
-      /> -->
-
-      <button
-        onclick={() => generateTTVoice(chapter_content)}
-        class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
-        title="TTS Btn"
-      >
-        test
-      </button>
+      <TiktokTTSButton text={chapter_content} nextPageUrl={`/${novel_id}/${nextChapter}`} />
       <button
         onclick={toggleChapterListDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"

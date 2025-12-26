@@ -1,4 +1,3 @@
-import { plainContentToParagraphs } from '$lib/utils'
 import { error } from '@sveltejs/kit'
 
 import type { RequestHandler } from './$types'
@@ -71,8 +70,8 @@ export const POST: RequestHandler = async ({ request }) => {
     })
   if (typeof text !== 'string') return error(400, { message: 'Text has to be string' })
 
-  const paragraphs = plainContentToParagraphs(text)
-  const req_text = prepareText(paragraphs[1])
+  const req_text = prepareText(text)
+
   const URL = `${BASE_URL}/?text_speaker=${voice}&req_text=${req_text}&speaker_map_type=${SPEAKER_MAP_TYPE}&aid=${AID}`
 
   try {
