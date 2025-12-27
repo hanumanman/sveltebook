@@ -13,7 +13,7 @@
   let searchQuery = $state('')
   let chapters: { id: number; chapter_name: string; chapter_number: number }[] = $state([])
   let loading = $state(false)
-  let error = $state('')
+  let error = $state<string | null>(null)
 
   async function fetchChapters() {
     loading = true

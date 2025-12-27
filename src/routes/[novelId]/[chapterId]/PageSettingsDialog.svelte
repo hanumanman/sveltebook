@@ -3,6 +3,7 @@
   import Button from '$lib/components/Button.svelte'
   import VoiceSelector from '$lib/components/VoiceSelector.svelte'
   import TikTokPlayer from '$lib/services/tiktokPlayer.svelte'
+  import { getLocalStorageItem, setLocalStorageItem } from '$lib/utils/localStorage'
   import { fade, fly } from 'svelte/transition'
 
   import { pageSettingsStore, themes } from './pageSettingsStore'
@@ -22,10 +23,8 @@
   // Load playback speed from localStorage
   $effect(() => {
     if (!browser) return
-    const savedSpeed = localStorage.getItem('tiktokPlaybackRate')
-    if (savedSpeed) {
-      playbackSpeed = parseFloat(savedSpeed)
-    }
+    const savedSpeed = getLocalStorageItem('tiktokPlaybackRate', 1, parseFloat)
+    playbackSpeed = savedSpeed
   })
 
   // Apply playback speed changes
@@ -163,11 +162,9 @@
         >
           <input
             type="checkbox"
-            checked={localStorage.getItem('tiktokAutoplay') === 'true'}
+            checked={getLocalStorageItem('tiktokAutoplay', false, (v) => v === 'true')}
             onchange={(e) => {
-              if (browser) {
-                localStorage.setItem('tiktokAutoplay', e.currentTarget.checked.toString())
-              }
+              setLocalStorageItem('tiktokAutoplay', e.currentTarget.checked, String)
             }}
             class="w-6 h-6 rounded border-gray-300 cursor-pointer accent-blue-500"
           />

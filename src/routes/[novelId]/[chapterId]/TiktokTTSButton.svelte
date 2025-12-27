@@ -1,7 +1,9 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
+  import { TIKTOK_PLAYER_CONSTANTS } from '$lib/services/tiktokPlayer.constants'
   import TikTokPlayer from '$lib/services/tiktokPlayer.svelte'
+  import { getLocalStorageItem } from '$lib/utils/localStorage'
   import { Loader2, Pause, Play } from 'lucide-svelte'
   import { onDestroy, onMount } from 'svelte'
 
@@ -19,13 +21,11 @@
   }
 
   function getSelectedVoice(): 'male' | 'female' {
-    if (!browser) return 'female'
-    return (localStorage.getItem('tiktokVoice') as 'male' | 'female') || 'female'
+    return getLocalStorageItem('tiktokVoice', 'female')
   }
 
   function isAutoplayEnabled(): boolean {
-    if (!browser) return false
-    return localStorage.getItem('tiktokAutoplay') === 'true'
+    return getLocalStorageItem('tiktokAutoplay', false, (v) => v === 'true')
   }
 
   function handleClick() {
@@ -48,7 +48,7 @@
 
   onMount(() => {
     if (!browser) return
-    if (localStorage.getItem('tiktokAutoplay') === 'true') {
+    if (getLocalStorageItem('tiktokAutoplay', false, (v) => v === 'true')) {
       tiktokPlayer.play(text, getSelectedVoice(), gotoNextPage)
     }
   })
@@ -57,8 +57,7 @@
     tiktokPlayer.stop()
   })
 
-  const radius = 18
-  const circumference = 2 * Math.PI * radius
+  const circumference = 2 * Math.PI * TIKTOK_PLAYER_CONSTANTS.CIRCLE_RADIUS
   const progressOffset = $derived(circumference - (tiktokPlayer.getProgress / 100) * circumference)
 </script>
 
@@ -73,7 +72,7 @@
         stroke-width="3"
         stroke="currentColor"
         fill="transparent"
-        r={radius}
+        r={TIKTOK_PLAYER_CONSTANTS.CIRCLE_RADIUS}
         cx="22"
         cy="22"
       />
@@ -85,7 +84,7 @@
         stroke-linecap="round"
         stroke="currentColor"
         fill="transparent"
-        r={radius}
+        r={TIKTOK_PLAYER_CONSTANTS.CIRCLE_RADIUS}
         cx="22"
         cy="22"
       />

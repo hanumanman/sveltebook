@@ -1,22 +1,18 @@
+import {
+  TIKTOK_CONFIG,
+  TIKTOK_ERROR_CODES,
+  TIKTOK_ERROR_MESSAGES,
+  TTVoice
+} from '$lib/server/config/tiktok'
 import { error } from '@sveltejs/kit'
 
 import type { RequestHandler } from './$types'
 
-enum TTVoice {
-  MALE = 'BV075_streaming',
-  FEMALE = 'BV074_streaming'
-}
-
-const BASE_URL = 'https://api16-normal-v6.tiktokv.com/media/api/text/speech/invoke'
-const TIKTOK_SESSION_ID = 'afaca2a860137b3991edf331eabc014e'
 const headers = {
-  'User-Agent':
-    'com.zhiliaoapp.musically/2022600030 (Linux; U; Android 7.1.2; es_ES; SM-G988N; Build/NRD90M;tt-ok/3.12.13.1)',
-  Cookie: `sessionid=${TIKTOK_SESSION_ID}`,
-  'Accept-Encoding': 'gzip,deflate,compress'
+  'User-Agent': TIKTOK_CONFIG.USER_AGENT,
+  Cookie: `sessionid=${TIKTOK_CONFIG.SESSION_ID}`,
+  ...TIKTOK_CONFIG.HEADERS
 }
-const SPEAKER_MAP_TYPE = 0
-const AID = 1233
 
 function prepareText(text: string) {
   text = text.replace('+', 'cộng')
@@ -25,24 +21,18 @@ function prepareText(text: string) {
   return text
 }
 
-function handleStatusError(status_code: number) {
-  switch (status_code) {
-    case 1:
-      return error(
-        400,
-        `Your TikTok session id might be invalid or expired. Try getting a new one. status_code: ${status_code}`
-      )
-    case 2:
-      return error(400, `The provided text is too long. status_code: ${status_code}`)
-    case 4:
-      return error(
-        400,
-        `Invalid speaker, please check the list of valid speaker values. status_code: ${status_code}`
-      )
-    case 5:
-      return error(500, `No session id found. status_code: ${status_code}`)
+function handleStatusError(statusCode: number) {
+  switch (statusCode) {
+    case TIKTOK_ERROR_CODES.INVALID_SESSION:
+      return error(400, `${TIKTOK_ERROR_MESSAGES.INVALID_SESSION} status_code: ${statusCode}`)
+    case TIKTOK_ERROR_CODES.TEXT_TOO_LONG:
+      return error(400, `${TIKTOK_ERROR_MESSAGES.TEXT_TOO_LONG} status_code: ${statusCode}`)
+    case TIKTOK_ERROR_CODES.INVALID_SPEAKER:
+      return error(400, `${TIKTOK_ERROR_MESSAGES.INVALID_SPEAKER} status_code: ${statusCode}`)
+    case TIKTOK_ERROR_CODES.NO_SESSION:
+      return error(500, `${TIKTOK_ERROR_MESSAGES.NO_SESSION} status_code: ${statusCode}`)
     default:
-      throw error(500, `Unexpected status code: ${status_code}`)
+      throw error(500, `Unexpected status code: ${statusCode}`)
   }
 }
 
@@ -121,10 +111,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const req_text = prepareText(text)
 
-  const URL = `${BASE_URL}/?text_speaker=${voice}&req_text=${req_text}&speaker_map_type=${SPEAKER_MAP_TYPE}&aid=${AID}`
+  const url = `${TIKTOK_CONFIG.BASE_URL}/?text_speaker=${voice}&req_text=${req_text}&speaker_map_type=${TIKTOK_CONFIG.SPEAKER_MAP_TYPE}&aid=${TIKTOK_CONFIG.AID}`
 
   try {
-    const response = await fetchWithRetry(URL, { method: 'POST', headers: headers })
+    const response = await fetchWithRetry(url, { method: 'POST', headers: headers })
 
     const contentType = response.headers.get('content-type')
     if (!contentType?.includes('application/json')) {
