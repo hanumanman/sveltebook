@@ -3,13 +3,13 @@
   import { preloadData } from '$app/navigation'
   import Button from '$lib/components/Button.svelte'
   import LinkButton from '$lib/components/LinkButton.svelte'
+  import AudioPlayer from '$lib/components/tts/AudioPlayer.svelte'
   import { plainContentToParagraphs, scrollPage } from '$lib/utils'
   import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, List, Settings } from 'lucide-svelte'
 
   import type { PageProps } from './$types'
   import ChapterListDialog from './ChapterListDialog.svelte'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
-  import TiktokTTSButton from './TiktokTTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
   let { data }: PageProps = $props()
@@ -205,7 +205,6 @@
 
     <!-- Page Controls -->
     <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pt-3">
-      <TiktokTTSButton text={chapter_content} nextPageUrl={`/${novel_id}/${nextChapter}`} />
       <button
         onclick={toggleChapterListDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
@@ -250,6 +249,14 @@
       {/if}
     </div>
   </div>
+
+  <!-- Audio Player -->
+  <AudioPlayer
+    text={chapter_content}
+    nextPageUrl={hasNextChapter ? `/${novel_id}/${nextChapter}` : undefined}
+    themeName={$pageSettingsStore.theme}
+    {themes}
+  />
 
   <!-- Chapter Content -->
   {#if $pageSettingsStore.infiniteReading && loadedChapters.length > 0}

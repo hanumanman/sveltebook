@@ -25,6 +25,8 @@ export class TikTokPlayer {
   private currentChunkIndex: number = 0
   private progress: number = 0
   private currentVoice: 'male' | 'female' = 'female'
+  private currentTime: number = $state(0)
+  private totalDuration: number = $state(0)
 
   private constructor() {
     if (browser) {
@@ -55,6 +57,18 @@ export class TikTokPlayer {
       this.audio.onpause = () => {
         if (this.state !== 'stopped') {
           this.state = 'paused'
+        }
+      }
+
+      this.audio.ontimeupdate = () => {
+        if (this.audio) {
+          this.currentTime = this.audio.currentTime
+        }
+      }
+
+      this.audio.onloadedmetadata = () => {
+        if (this.audio) {
+          this.totalDuration = this.audio.duration
         }
       }
 
@@ -101,6 +115,27 @@ export class TikTokPlayer {
 
   get getProgress(): number {
     return this.progress
+  }
+
+  get getCurrentTime(): number {
+    return this.currentTime
+  }
+
+  get getTotalDuration(): number {
+    return this.totalDuration
+  }
+
+  get getProgressPercentage(): number {
+    if (!this.audio || this.totalDuration === 0) return 0
+    return (this.currentTime / this.totalDuration) * 100
+  }
+
+  get getCurrentChunkNumber(): number {
+    return this.currentChunkIndex + 1
+  }
+
+  get getTotalChunks(): number {
+    return this.queue.length + this.currentChunkIndex
   }
 
   private updateProgress() {
@@ -213,6 +248,7 @@ export class TikTokPlayer {
   private playAudioFromBlob(blob: Blob) {
     const url = URL.createObjectURL(blob)
     this.currentBlobUrl = url
+    this.currentTime = 0
     console.log(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Created blob URL:`, url)
 
     if (!this.audio) {
@@ -301,6 +337,7 @@ export class TikTokPlayer {
 
     this.currentChunkIndex = 0
     this.progress = 0
+    this.currentTime = 0
     this.playNextChunk()
   }
 
@@ -341,6 +378,7 @@ export class TikTokPlayer {
     this.queue = []
     this.state = 'stopped'
     this.progress = 0
+    this.currentTime = 0
   }
 }
 
