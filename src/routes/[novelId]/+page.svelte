@@ -133,10 +133,10 @@
             {#each displayedChapters as chapter (chapter.id)}
               <a
                 href={`/${id}/${chapter.chapter_number}`}
-                class="group flex flex-col overflow-hidden rounded-lg border border-gray-700 bg-gray-800/50 p-3 transition-all hover:border-blue-500/50 hover:bg-gray-800 hover:shadow-md hover:shadow-blue-900/10"
+                class="group flex overflow-hidden items-center rounded-lg border border-gray-700 bg-gray-800/50 p-3 transition-all hover:border-blue-500/50 hover:bg-gray-800 hover:shadow-md hover:shadow-blue-900/10"
               >
                 <span
-                  class="mb-2 flex h-7 w-7 shrink-0 items-center justify-center rounded bg-gray-900 text-xs font-mono font-medium text-gray-500 group-hover:text-blue-400"
+                  class="mr-2 px-2 flex h-7 w-fit shrink-0 items-center justify-center rounded bg-gray-900 text-xs font-mono font-medium text-gray-500 group-hover:text-blue-400"
                 >
                   {chapter.chapter_number}
                 </span>

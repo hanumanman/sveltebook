@@ -28,7 +28,7 @@
     <input
       bind:value={searchTerm}
       placeholder="Search for a novel"
-      class="border border-gray-500 rounded-lg px-4 py-2 w-full max-w-lg"
+      class="border bg-pennBlue-900 border-gray-500 rounded-lg px-4 py-2 w-full max-w-lg"
       type="text"
     />
   </div>

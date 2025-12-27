@@ -132,6 +132,19 @@
         </div>
       </div>
 
+      <div
+        style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};background-color: {themes[
+          $pageSettingsStore.theme
+        ].background}; color: {themes[$pageSettingsStore.theme].color};"
+        class="p-4 rounded-lg border border-gray-600"
+      >
+        <p class="line-clamp-3">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam, consectetur sunt, aliquam
+          corrupti cupiditate doloremque, ipsum suscipit adipisci maxime itaque beatae quae delectus
+          inventore nihil.
+        </p>
+      </div>
+
       <div class="w-full border-t border-gray-600 pt-4">
         <h2 class="text-base md:text-lg mb-2">Infinite Reading Mode</h2>
         <p class="text-sm text-gray-400 mb-3">
@@ -187,21 +200,7 @@
         </div>
       </div>
 
-      <div
-        style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};background-color: {themes[
-          $pageSettingsStore.theme
-        ].background}; color: {themes[$pageSettingsStore.theme].color};"
-        class="p-4 rounded-lg border border-gray-600"
-      >
-        <p class="line-clamp-3">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam, consectetur sunt, aliquam
-          corrupti cupiditate doloremque, ipsum suscipit adipisci maxime itaque beatae quae delectus
-          inventore nihil.
-        </p>
-      </div>
-
       <div class="flex gap-3 pt-2 sticky bottom-0 bg-pennBlue-900 pb-2 -mb-2">
-        <Button class="flex-1 py-3 text-base" onclick={toggleDialogFn}>Close</Button>
         <Button
           class="flex-1 py-3 text-base"
           onclick={() => {
@@ -213,6 +212,8 @@
             }
           }}>Reset</Button
         >
+
+        <Button class="flex-1 py-3 text-base" onclick={toggleDialogFn}>Save & Close</Button>
       </div>
     </div>
   </div>

@@ -95,7 +95,7 @@ export class TikTokPlayer {
     return TikTokPlayer.instance
   }
 
-  get getState(): PlayerState {
+  get playbackState(): PlayerState {
     return this.state
   }
 

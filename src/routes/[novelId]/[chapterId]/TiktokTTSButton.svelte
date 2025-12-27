@@ -1,7 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
-  import { TIKTOK_PLAYER_CONSTANTS } from '$lib/services/tiktokPlayer.constants'
   import TikTokPlayer from '$lib/services/tiktokPlayer.svelte'
   import { getLocalStorageItem } from '$lib/utils/localStorage'
   import { Loader2, Pause, Play } from 'lucide-svelte'
@@ -56,41 +55,9 @@
   onDestroy(() => {
     tiktokPlayer.stop()
   })
-
-  const circumference = 2 * Math.PI * TIKTOK_PLAYER_CONSTANTS.CIRCLE_RADIUS
-  const progressOffset = $derived(circumference - (tiktokPlayer.getProgress / 100) * circumference)
 </script>
 
 <div class="relative inline-flex items-center justify-center">
-  {#if tiktokPlayer.getState === 'playing' || tiktokPlayer.getState === 'paused' || tiktokPlayer.getState === 'loading'}
-    <svg
-      class="absolute -top-1 -left-1 w-[calc(100%+8px)] h-[calc(100%+8px)] rotate-[-90deg]"
-      viewBox="0 0 44 44"
-    >
-      <circle
-        class="text-gray-200 dark:text-gray-700"
-        stroke-width="3"
-        stroke="currentColor"
-        fill="transparent"
-        r={TIKTOK_PLAYER_CONSTANTS.CIRCLE_RADIUS}
-        cx="22"
-        cy="22"
-      />
-      <circle
-        class="text-pennBlue-600 dark:text-pennBlue-400 transition-all duration-300 ease-linear"
-        stroke-width="3"
-        stroke-dasharray={circumference}
-        stroke-dashoffset={progressOffset}
-        stroke-linecap="round"
-        stroke="currentColor"
-        fill="transparent"
-        r={TIKTOK_PLAYER_CONSTANTS.CIRCLE_RADIUS}
-        cx="22"
-        cy="22"
-      />
-    </svg>
-  {/if}
-
   <button
     onclick={handleClick}
     class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
