@@ -9,7 +9,7 @@
   import type { PageProps } from './$types'
   import ChapterListDialog from './ChapterListDialog.svelte'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
-  import TTSButton from './TTSButton.svelte'
+  import TiktokTTSButton from './TiktokTTSButton.svelte'
   import { pageSettingsStore, themes } from './pageSettingsStore'
 
   let { data }: PageProps = $props()
@@ -58,8 +58,12 @@
   >([])
   let isLoadingNext = $state(false)
   let currentMaxChapter = $state(0)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let chaptersMetadata: any[] = [] // Cache for chapter metadata
+  let chaptersMetadata: ChapterMetadata[] = []
+
+  interface ChapterMetadata {
+    chapter_number: number
+    chapter_name: string
+  }
 
   // Initialize loaded chapters with current chapter
   $effect(() => {
@@ -86,6 +90,49 @@
     }
   })
 
+  function findChapterMetadata(chapterNumber: number): ChapterMetadata | undefined {
+    return chaptersMetadata.find((ch) => ch.chapter_number === chapterNumber)
+  }
+
+  function parseChapterContentFromHTML(html: string): string {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    const articleElement = doc.querySelector('article')
+    const paragraphs = articleElement?.querySelectorAll('p')
+    return Array.from(paragraphs || [])
+      .map((p) => p.textContent)
+      .join('\n\n')
+  }
+
+  function updateChapterNavigation(chapterNumber: number, chapterName: string): void {
+    const newUrl = `/${novel_id}/${chapterNumber}`
+    window.history.pushState({ chapterNumber }, '', newUrl)
+    document.title = `Chapter ${chapterNumber}: ${chapterName}`
+  }
+
+  async function loadNextChapter(nextChapterNumber: number): Promise<void> {
+    const nextChapterData = findChapterMetadata(nextChapterNumber)
+    if (!nextChapterData) return
+
+    const chapterResponse = await fetch(`/${novel_id}/${nextChapterNumber}`)
+    const html = await chapterResponse.text()
+    const content = parseChapterContentFromHTML(html)
+
+    loadedChapters = [
+      ...loadedChapters,
+      {
+        number: nextChapterNumber,
+        name: nextChapterData.chapter_name,
+        content,
+        novelId: novel_id
+      }
+    ]
+
+    currentMaxChapter = nextChapterNumber
+    updateChapterNavigation(nextChapterNumber, nextChapterData.chapter_name)
+    saveProgress()
+  }
+
   // Infinite scroll handler
   async function handleScroll() {
     if (!$pageSettingsStore.infiniteReading) return
@@ -94,55 +141,14 @@
 
     const scrollPosition = window.scrollY + window.innerHeight
     const documentHeight = document.documentElement.scrollHeight
-    const threshold = 4000 // pixels from bottom - load earlier for smoother UX
+    const threshold = 4000
 
     if (scrollPosition >= documentHeight - threshold) {
       isLoadingNext = true
       const nextChapterNumber = currentMaxChapter + 1
 
       try {
-        // Use cached metadata if available
-        const nextChapterData = chaptersMetadata.find(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (ch: any) => ch.chapter_number === nextChapterNumber
-        )
-
-        if (nextChapterData) {
-          // Fetch full chapter content
-          const chapterResponse = await fetch(`/${novel_id}/${nextChapterNumber}`)
-          const html = await chapterResponse.text()
-
-          // Parse the response to extract chapter data
-          const parser = new DOMParser()
-          const doc = parser.parseFromString(html, 'text/html')
-          const articleElement = doc.querySelector('article')
-          const paragraphs = articleElement?.querySelectorAll('p')
-          const content = Array.from(paragraphs || [])
-            .map((p) => p.textContent)
-            .join('\n\n')
-
-          loadedChapters = [
-            ...loadedChapters,
-            {
-              number: nextChapterNumber,
-              name: nextChapterData.chapter_name,
-              content: content,
-              novelId: novel_id
-            }
-          ]
-
-          currentMaxChapter = nextChapterNumber
-
-          // Update URL and browser history
-          const newUrl = `/${novel_id}/${nextChapterNumber}`
-          window.history.pushState({ chapterNumber: nextChapterNumber }, '', newUrl)
-
-          // Update page title
-          document.title = `Chapter ${nextChapterNumber}: ${nextChapterData.chapter_name}`
-
-          // Save progress
-          saveProgress()
-        }
+        await loadNextChapter(nextChapterNumber)
       } catch (error) {
         console.error('Failed to load next chapter:', error)
       } finally {
@@ -199,13 +205,7 @@
 
     <!-- Page Controls -->
     <div class="flex flex-wrap justify-end gap-1.5 sm:gap-2 pt-3">
-      <TTSButton
-        text={chapter_content}
-        nextPageUrl={`/${novel_id}/${nextChapter}`}
-        title={data.novel.novel_name}
-        chapterTitle={`Chapter ${chapter_number}: ${chapter_name}`}
-      />
-
+      <TiktokTTSButton text={chapter_content} nextPageUrl={`/${novel_id}/${nextChapter}`} />
       <button
         onclick={toggleChapterListDialog}
         class="hover:bg-pennBlue-600 cursor-pointer rounded-lg border border-gray-300 p-2 sm:p-3 dark:border-gray-700"
@@ -275,12 +275,6 @@
       </article>
     {/each}
 
-    <!-- End of book message -->
-    {#if currentMaxChapter >= data.chapter_count}
-      <div class="flex justify-center pb-3 pt-8">
-        <span>You have caught up!</span>
-      </div>
-    {/if}
     <!-- End of book message -->
     {#if currentMaxChapter >= data.chapter_count}
       <div class="flex justify-center pb-3 pt-8">

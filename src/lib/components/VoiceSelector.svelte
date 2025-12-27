@@ -1,25 +1,16 @@
 <script lang="ts">
-  import { browser } from '$app/environment'
-  import { onMount } from 'svelte'
+  import { getLocalStorageItem, setLocalStorageItem } from '$lib/utils/localStorage'
 
   const voices = [
-    { id: 'vi-VN-HoaiMyNeural', name: 'HoaiMy (Female)', gender: 'female' },
-    { id: 'vi-VN-NamMinhNeural', name: 'NamMinh (Male)', gender: 'male' }
-  ]
+    { id: 'female', name: 'Female', gender: 'female' },
+    { id: 'male', name: 'Male', gender: 'male' }
+  ] as const
 
-  let selectedVoice = $state('vi-VN-NamMinhNeural')
+  let selectedVoice = $state(getLocalStorageItem('tiktokVoice', 'female'))
 
-  onMount(() => {
-    if (browser) {
-      selectedVoice = localStorage.getItem('selectedVoice') || 'vi-VN-NamMinhNeural'
-    }
-  })
-
-  function handleVoiceChange(voiceId: string) {
+  function handleVoiceChange(voiceId: 'male' | 'female') {
     selectedVoice = voiceId
-    if (browser) {
-      localStorage.setItem('selectedVoice', voiceId)
-    }
+    setLocalStorageItem('tiktokVoice', voiceId)
   }
 </script>
 

@@ -22,6 +22,14 @@ export function plainContentToParagraphs(content: string): string[] {
   return content.split('\n\n').filter(Boolean)
 }
 
+export function plainContentToSentences(content: string): string[] {
+  const separators = /[,:;.]+/
+  return content
+    .split(separators)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
 export function scrollPage(pos: 'top' | 'bottom') {
   window.scrollTo({
     top: pos === 'top' ? 0 : document.body.scrollHeight,

@@ -1,4 +1,3 @@
-// routes/login/google/+server.ts
 import { google } from '$lib/server/auth/google'
 import type { RequestEvent } from '@sveltejs/kit'
 import { generateCodeVerifier, generateState } from 'arctic'

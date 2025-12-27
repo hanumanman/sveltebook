@@ -1,3 +1,4 @@
+import { CHAPTER_PARSING_CONFIG } from '$lib/server/config/chapter'
 import { db } from '$lib/server/db'
 import { getAllNovels } from '$lib/server/db/queries/select'
 import { type TInsertChapter, chaptersTable, novelsTable } from '$lib/server/db/schema'
@@ -116,7 +117,7 @@ async function updateChapters(chapters: TInsertChapter[]) {
 }
 
 function parseChapter(text: string, novel_id: number) {
-  const chapterRegex = /(?:CHƯƠNG|Chương) (\d+):\s*([^\n]+)/g
+  const chapterRegex = CHAPTER_PARSING_CONFIG.VIETNAMESE_CHAPTER_REGEX
   const chapters = []
   let match
   while ((match = chapterRegex.exec(text)) !== null) {
@@ -124,19 +125,17 @@ function parseChapter(text: string, novel_id: number) {
     const startIndex = match.index + match[0].length
     const endIndex = chapterRegex.lastIndex
 
-    // Find the next chapter start or the end of the string
     const nextMatch = chapterRegex.exec(text)
     const chapterContent = text.slice(startIndex, nextMatch ? nextMatch.index : text.length).trim()
 
     chapters.push({
-      chapter_number: parseInt(match[1]), // Use the number from the regex match, not the counter? Or trust the counter? The regex captures (\d+), so let's use that.
+      chapter_number: parseInt(match[1]),
       chapter_name: chapterTitle,
       chapter_content: chapterContent,
       novel_id,
       chapter_name_normalized: normalizeVietnamese(chapterTitle)
     })
 
-    // Reset the lastIndex to current endIndex for the next iteration
     chapterRegex.lastIndex = endIndex
   }
   return chapters
