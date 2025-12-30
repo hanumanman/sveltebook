@@ -6,6 +6,7 @@
   import SpeedMenu from './SpeedMenu.svelte'
   import StopButton from './StopButton.svelte'
   import VoiceSelector from './VoiceSelector.svelte'
+  import Wave from './Wave.svelte'
 
   interface Props {
     text: string
@@ -35,5 +36,6 @@
     <StopButton compact={true} />
     <SpeedMenu />
     <VoiceSelector compact={true} />
+    <Wave />
   </div>
 </div>
