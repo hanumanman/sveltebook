@@ -1,10 +1,9 @@
 <script lang="ts">
-  import TikTokPlayer from '$lib/services/tiktokPlayer.svelte'
-
   import PlayPauseButton from './PlayPauseButton.svelte'
   import SpeedMenu from './SpeedMenu.svelte'
   import StopButton from './StopButton.svelte'
   import VoiceSelector from './VoiceSelector.svelte'
+  import Wave from './Wave.svelte'
 
   interface Props {
     text: string
@@ -14,7 +13,6 @@
   }
 
   let { text, nextPageUrl, themeName, themes }: Props = $props()
-  const _player = TikTokPlayer.getInstance()
 </script>
 
 <div
@@ -24,10 +22,11 @@
   role="region"
   aria-label="Text to Speech Player"
 >
-  <div class="flex items-center gap-3 mb-3">
+  <div class="flex items-center gap-3">
     <PlayPauseButton {text} {nextPageUrl} />
     <StopButton />
     <SpeedMenu />
     <VoiceSelector />
+    <Wave />
   </div>
 </div>
