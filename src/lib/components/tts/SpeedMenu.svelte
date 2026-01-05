@@ -37,7 +37,7 @@
   })
 </script>
 
-<div class="speed-menu-container relative inline-block">
+<div class="relative inline-block">
   <button
     onclick={toggleMenu}
     class="flex items-center gap-1 hover:bg-pennBlue-600 cursor-pointer
@@ -55,14 +55,14 @@
     <div
       transition:fly={{ y: -10, duration: 200 }}
       class="absolute top-full right-0 mt-2 bg-pennBlue-900 border border-gray-700
-             rounded-lg shadow-xl z-50 overflow-hidden min-w-[120px]"
+             rounded-lg shadow-xl z-50 overflow-hidden"
       role="menu"
       aria-label="Playback speed options"
     >
       {#each speeds as speed (speed)}
         <button
           onclick={() => setSpeed(speed)}
-          class="w-full text-left px-4 py-2 text-sm text-gray-300
+          class="w-full text-left px-4 text-sm text-gray-300
                  hover:bg-pennBlue-700 transition-colors
                  {currentSpeed === speed ? 'bg-pennBlue-700 text-white' : ''}"
           role="menuitem"
