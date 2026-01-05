@@ -24,10 +24,21 @@ export function plainContentToParagraphs(content: string): string[] {
 
 export function plainContentToSentences(content: string): string[] {
   const separators = /[,:;.]+/
-  return content
+  const sentences = content
     .split(separators)
     .map((s) => s.trim())
     .filter(Boolean)
+
+  const grouped: string[] = []
+  for (let i = 0; i < sentences.length; i += 2) {
+    if (i + 1 < sentences.length) {
+      grouped.push(`${sentences[i]}. ${sentences[i + 1]}.`)
+    } else {
+      grouped.push(`${sentences[i]}.`)
+    }
+  }
+
+  return grouped
 }
 
 export function scrollPage(pos: 'top' | 'bottom') {
