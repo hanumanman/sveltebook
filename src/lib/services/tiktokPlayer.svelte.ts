@@ -1,8 +1,13 @@
 import { browser } from '$app/environment'
 import { plainContentToSentences } from '$lib/utils'
-import { getLocalStorageItem, setLocalStorageItem } from '$lib/utils/localStorage'
+import { setLocalStorageItem } from '$lib/utils/localStorage'
 
-import { TIKTOK_PLAYER_CONSTANTS } from './tiktokPlayer.constants'
+const TIKTOK_PLAYER_CONSTANTS = {
+  AUDIO_FETCH_TIMEOUT_MS: 45000,
+  PREFETCH_CHUNK_COUNT: 5,
+  CIRCLE_RADIUS: 18,
+  CONSOLE_PREFIX: '[TikTokPlayer]'
+} as const
 
 type PlayerState = 'playing' | 'paused' | 'stopped' | 'loading'
 
@@ -16,82 +21,25 @@ export class TikTokPlayer {
   private audio: HTMLAudioElement | null = null
   private state: PlayerState = $state('stopped')
 
+  private audioContext: AudioContext | null = null
+  private audioSource: AudioBufferSourceNode | null = null
+  private gainNode: GainNode | null = null
+
   private queue: QueueItem[] = []
   private currentBlobUrl: string | null = null
   private onEnded: (() => void) | null = null
   private abortController: AbortController | null = null
 
-  private prefetchAbortController: AbortController | null = null
   private currentChunkIndex: number = 0
-  private progress: number = 0
   private currentVoice: 'male' | 'female' = 'female'
-  private currentTime: number = $state(0)
-  private totalDuration: number = $state(0)
+
+  private readonly batchSize: number = 6
+  private bufferQueue: AudioBuffer[] = []
+  private isPrefetching: boolean = false
 
   private constructor() {
     if (browser) {
       this.audio = new Audio()
-
-      const savedRate = getLocalStorageItem('tiktokPlaybackRate', 1, parseFloat)
-      if (savedRate) {
-        this.audio.playbackRate = savedRate
-      }
-
-      this.audio.onended = () => {
-        this.cleanupBlobUrl()
-        if (this.queue.length > 0) {
-          this.currentChunkIndex++
-          this.updateProgress()
-          this.playNextChunk()
-        } else {
-          this.state = 'stopped'
-          this.progress = 0
-          this.onEnded?.()
-        }
-      }
-
-      this.audio.onplay = () => {
-        this.state = 'playing'
-      }
-
-      this.audio.onpause = () => {
-        if (this.state !== 'stopped') {
-          this.state = 'paused'
-        }
-      }
-
-      this.audio.ontimeupdate = () => {
-        if (this.audio) {
-          this.currentTime = this.audio.currentTime
-        }
-      }
-
-      this.audio.onloadedmetadata = () => {
-        if (this.audio) {
-          this.totalDuration = this.audio.duration
-        }
-      }
-
-      this.audio.onerror = (_e) => {
-        const errorDetails = this.audio?.error
-        const errorMessages = {
-          1: 'MEDIA_ERR_ABORTED - The fetching process was aborted by the user',
-          2: 'MEDIA_ERR_NETWORK - A network error occurred while fetching the audio',
-          3: 'MEDIA_ERR_DECODE - An error occurred while decoding the audio',
-          4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - The audio format is not supported'
-        }
-
-        const errorCode = errorDetails?.code
-        const errorMessage = errorCode
-          ? errorMessages[errorCode as keyof typeof errorMessages]
-          : 'Unknown error'
-
-        console.error('TikTok Player audio playback error:', errorMessage, errorDetails)
-        console.error('Current blob URL:', this.currentBlobUrl)
-
-        this.cleanupBlobUrl()
-        this.state = 'stopped'
-      }
     }
   }
 
@@ -100,6 +48,74 @@ export class TikTokPlayer {
       URL.revokeObjectURL(this.currentBlobUrl)
       this.currentBlobUrl = null
     }
+  }
+
+  private cleanupAudioSource() {
+    if (this.audioSource) {
+      try {
+        this.audioSource.stop()
+      } catch (_e) {
+        console.error(
+          `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} cleanupAudioSource] Error cleaning up audio source`
+        )
+      }
+      this.audioSource.disconnect()
+      this.audioSource = null
+    }
+  }
+
+  private async initializeAudioContext(): Promise<void> {
+    if (!this.audioContext) {
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      this.audioContext = new AudioContextClass()
+    }
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume()
+    }
+  }
+
+  private async decodeAllBlobs(blobs: Blob[]): Promise<AudioBuffer[]> {
+    await this.initializeAudioContext()
+    if (!this.audioContext) throw new Error('AudioContext not initialized')
+
+    const decodePromises = blobs.map(async (blob) => {
+      const arrayBuffer = await blob.arrayBuffer()
+      return await this.audioContext!.decodeAudioData(arrayBuffer)
+    })
+
+    return Promise.all(decodePromises)
+  }
+
+  private mergeAudioBuffers(buffers: AudioBuffer[]): AudioBuffer {
+    if (buffers.length === 0) {
+      throw new Error('No audio buffers to merge')
+    }
+    if (buffers.length === 1) {
+      return buffers[0]
+    }
+
+    const firstBuffer = buffers[0]
+    const numberOfChannels = firstBuffer.numberOfChannels
+    const sampleRate = firstBuffer.sampleRate
+
+    const totalLength = buffers.reduce((sum, buffer) => sum + buffer.length, 0)
+
+    const mergedBuffer = this.audioContext!.createBuffer(numberOfChannels, totalLength, sampleRate)
+
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const mergedChannel = mergedBuffer.getChannelData(channel)
+      let offset = 0
+
+      for (const buffer of buffers) {
+        const sourceChannel = buffer.getChannelData(channel)
+        mergedChannel.set(sourceChannel, offset)
+        offset += buffer.length
+      }
+    }
+
+    return mergedBuffer
   }
 
   static getInstance(): TikTokPlayer {
@@ -113,38 +129,12 @@ export class TikTokPlayer {
     return this.state
   }
 
-  get getProgress(): number {
-    return this.progress
-  }
-
-  get getCurrentTime(): number {
-    return this.currentTime
-  }
-
-  get getTotalDuration(): number {
-    return this.totalDuration
-  }
-
-  get getProgressPercentage(): number {
-    if (!this.audio || this.totalDuration === 0) return 0
-    return (this.currentTime / this.totalDuration) * 100
-  }
-
   get getCurrentChunkNumber(): number {
     return this.currentChunkIndex + 1
   }
 
   get getTotalChunks(): number {
-    return this.queue.length + this.currentChunkIndex
-  }
-
-  private updateProgress() {
-    const totalChunks = this.currentChunkIndex + this.queue.length
-    if (totalChunks > 0) {
-      this.progress = (this.currentChunkIndex / totalChunks) * 100
-    } else {
-      this.progress = 0
-    }
+    return this.queue.length
   }
 
   private async fetchAudio(
@@ -179,148 +169,11 @@ export class TikTokPlayer {
     return blob
   }
 
-  private prefetchNextChunks() {
-    if (this.queue.length === 0) return
-
-    const itemsToPrefetch = this.queue.slice(0, TIKTOK_PLAYER_CONSTANTS.PREFETCH_CHUNK_COUNT)
-
-    if (!this.prefetchAbortController) {
-      this.prefetchAbortController = new AbortController()
-    }
-
-    itemsToPrefetch.forEach((item, index) => {
-      if (!item.audioPromise) {
-        console.log(
-          `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} prefetch] Prefetching chunk +${index + 1}:`,
-          item.text.substring(0, 30) + '...'
-        )
-        item.audioPromise = this.fetchAudio(
-          item.text,
-          this.currentVoice,
-          this.prefetchAbortController!.signal
-        ).catch((err) => {
-          console.warn(
-            `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} prefetch] Failed to prefetch chunk +${index + 1}:`,
-            err.message || err
-          )
-          item.audioPromise = null
-          return Promise.reject(err)
-        })
-      }
-    })
-  }
-
-  private async getAudioBlob(item: QueueItem): Promise<Blob> {
-    if (item.audioPromise) {
-      try {
-        console.log(
-          `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Using prefetched promise`
-        )
-        return await item.audioPromise
-      } catch (prefetchError: unknown) {
-        const errorMessage =
-          prefetchError instanceof Error ? prefetchError.message : String(prefetchError)
-        console.log(
-          `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Prefetch failed, fetching on-demand:`,
-          errorMessage
-        )
-        return this.fetchAudioOnDemand(item.text)
-      }
-    }
-
-    this.state = 'loading'
-    console.log(
-      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] State set to loading (no prefetch)`
-    )
-    return this.fetchAudioOnDemand(item.text)
-  }
-
-  private fetchAudioOnDemand(text: string): Promise<Blob> {
-    if (this.abortController) {
-      this.abortController.abort()
-    }
-    this.abortController = new AbortController()
-
-    console.log(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Fetching audio...`)
-    return this.fetchAudio(text, this.currentVoice, this.abortController.signal)
-  }
-
-  private playAudioFromBlob(blob: Blob) {
-    const url = URL.createObjectURL(blob)
-    this.currentBlobUrl = url
-    this.currentTime = 0
-    console.log(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Created blob URL:`, url)
-
-    if (!this.audio) {
-      console.error(
-        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Audio element is null!`
-      )
-      return
-    }
-
-    console.log(
-      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Setting audio.src to blob URL`
-    )
-    this.audio.src = url
-
-    const savedRate = getLocalStorageItem('tiktokPlaybackRate', 1, parseFloat)
-    if (savedRate) {
-      this.audio.playbackRate = savedRate
-      console.log(
-        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Reapplied playback rate:`,
-        savedRate
-      )
-    }
-
-    console.log(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Calling audio.play()`)
-    this.audio.play()
-    console.log(
-      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Audio playback started successfully`
-    )
-  }
-
-  private async playNextChunk() {
-    console.log(
-      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Starting, queue length:`,
-      this.queue.length
-    )
-
-    if (this.queue.length === 0) {
-      console.log(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Queue empty, returning`)
-      return
-    }
-
-    const item = this.queue.shift()
-    if (!item) {
-      console.log(
-        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] No item in queue, returning`
-      )
-      return
-    }
-
-    console.log(
-      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Processing paragraph:`,
-      item.text.substring(0, 50) + '...'
-    )
-
-    try {
-      const blob = await this.getAudioBlob(item)
-      this.cleanupBlobUrl()
-      this.playAudioFromBlob(blob)
-      this.prefetchNextChunks()
-    } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      if (err.name === 'AbortError') {
-        console.log(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Fetch aborted`)
-        return
-      }
-
-      console.error(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextChunk] Error occurred:`, err)
-      this.state = 'stopped'
-    }
-  }
-
-  play = (text: string, voice: 'male' | 'female' = 'female', onendedCallback?: () => void) => {
+  play = async (
+    text: string,
+    voice: 'male' | 'female' = 'female',
+    onendedCallback?: () => void
+  ) => {
     this.stop()
     this.onEnded = onendedCallback || null
     this.currentVoice = voice
@@ -336,27 +189,194 @@ export class TikTokPlayer {
     )
 
     this.currentChunkIndex = 0
-    this.progress = 0
-    this.currentTime = 0
-    this.playNextChunk()
+    this.bufferQueue = []
+    this.state = 'loading'
+
+    try {
+      await this.fetchAndPlayFirstBatch()
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} play] Error:`, err)
+      this.state = 'stopped'
+    }
   }
 
-  resume = () => {
-    if (this.audio && this.state === 'paused') {
+  private async fetchBatch(startIndex: number): Promise<Blob[]> {
+    const endIndex = Math.min(startIndex + this.batchSize, this.queue.length)
+    const items = this.queue.slice(startIndex, endIndex)
+
+    console.log(
+      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} fetchBatch] Fetching chunks ${startIndex + 1}-${endIndex}/${this.queue.length}`
+    )
+
+    if (!this.abortController) {
+      this.abortController = new AbortController()
+    }
+
+    const promises = items.map((item) =>
+      this.fetchAudio(item.text, this.currentVoice, this.abortController!.signal)
+    )
+    return Promise.all(promises)
+  }
+
+  private async fetchAndPlayFirstBatch(): Promise<void> {
+    const blobs = await this.fetchBatch(0)
+    console.log(
+      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} fetchAndPlayFirstBatch] Fetched ${blobs.length} chunks, decoding...`
+    )
+
+    const audioBuffers = await this.decodeAllBlobs(blobs)
+    console.log(
+      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} fetchAndPlayFirstBatch] Decoded, merging...`
+    )
+
+    const mergedBuffer = this.mergeAudioBuffers(audioBuffers)
+    console.log(
+      `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} fetchAndPlayFirstBatch] Merged, batch duration: ${mergedBuffer.duration.toFixed(2)}s`
+    )
+
+    this.playBatch(mergedBuffer, 0)
+  }
+
+  private playBatch(buffer: AudioBuffer, batchIndex: number): void {
+    this.cleanupAudioSource()
+    if (!this.audioContext) {
+      console.error(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playBatch] AudioContext not initialized`
+      )
+      return
+    }
+
+    this.audioSource = this.audioContext.createBufferSource()
+    this.audioSource.buffer = buffer
+
+    this.gainNode = this.audioContext.createGain()
+    this.audioSource.connect(this.gainNode)
+    this.gainNode.connect(this.audioContext.destination)
+
+    this.audioSource.onended = () => {
+      if (this.state === 'playing') {
+        this.currentChunkIndex += this.batchSize
+        console.log(
+          `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playBatch] Batch ${batchIndex} ended, current chunk: ${this.currentChunkIndex}/${this.queue.length}`
+        )
+
+        if (this.currentChunkIndex < this.queue.length) {
+          this.playNextBatch()
+        } else {
+          console.log(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playBatch] All batches finished`)
+          this.state = 'stopped'
+          this.onEnded?.()
+        }
+      }
+    }
+
+    this.audioSource.start(0)
+    this.state = 'playing'
+
+    this.prefetchNextBatch()
+  }
+
+  private playNextBatch(): void {
+    if (this.bufferQueue.length > 0) {
+      const nextBuffer = this.bufferQueue.shift()
+      const nextBatchIndex = this.currentChunkIndex / this.batchSize
+      console.log(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextBatch] Playing prefetched batch ${nextBatchIndex}`
+      )
+      this.playBatch(nextBuffer!, nextBatchIndex)
+    } else {
+      console.log(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} playNextBatch] No prefetched buffer, fetching...`
+      )
+      this.fetchAndPlayNextBatch()
+    }
+  }
+
+  private async fetchAndPlayNextBatch(): Promise<void> {
+    this.state = 'loading'
+    try {
+      const blobs = await this.fetchBatch(this.currentChunkIndex)
+      console.log(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} fetchAndPlayNextBatch] Fetched ${blobs.length} chunks, decoding...`
+      )
+
+      const buffers = await this.decodeAllBlobs(blobs)
+      const mergedBuffer = this.mergeAudioBuffers(buffers)
+
+      const nextBatchIndex = this.currentChunkIndex / this.batchSize
+      console.log(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} fetchAndPlayNextBatch] Playing batch ${nextBatchIndex}, duration: ${mergedBuffer.duration.toFixed(2)}s`
+      )
+
+      this.playBatch(mergedBuffer, nextBatchIndex)
+    } catch (error) {
+      console.error(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} fetchAndPlayNextBatch] Error:`,
+        error
+      )
+      this.state = 'stopped'
+      this.onEnded?.()
+    }
+  }
+
+  private async prefetchNextBatch(): Promise<void> {
+    if (this.isPrefetching) {
+      return
+    }
+
+    const nextBatchIndex = this.currentChunkIndex + this.batchSize
+    if (nextBatchIndex >= this.queue.length) {
+      console.log(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} prefetchNextBatch] No more batches to prefetch`
+      )
+      return
+    }
+
+    this.isPrefetching = true
+    try {
+      const blobs = await this.fetchBatch(nextBatchIndex)
+      console.log(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} prefetchNextBatch] Prefetched ${blobs.length} chunks, decoding...`
+      )
+
+      const buffers = await this.decodeAllBlobs(blobs)
+      const mergedBuffer = this.mergeAudioBuffers(buffers)
+
+      this.bufferQueue.push(mergedBuffer)
+      console.log(
+        `${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} prefetchNextBatch] Prefetched batch starting at chunk ${nextBatchIndex}, duration: ${mergedBuffer.duration.toFixed(2)}s`
+      )
+    } catch (error) {
+      console.error(`${TIKTOK_PLAYER_CONSTANTS.CONSOLE_PREFIX} prefetchNextBatch] Error:`, error)
+      this.bufferQueue = []
+    } finally {
+      this.isPrefetching = false
+    }
+  }
+
+  resume = async () => {
+    if (this.state === 'paused' && this.audioContext) {
+      await this.audioContext.resume()
+      this.state = 'playing'
+    } else if (this.audio) {
       this.audio.play()
     }
   }
 
   pause = () => {
-    if (this.audio && this.state === 'playing') {
+    if (this.state === 'playing' && this.audioContext) {
+      this.audioContext.suspend()
+      this.state = 'paused'
+    } else if (this.audio && this.state === 'playing') {
       this.audio.pause()
     }
   }
 
   setPlaybackRate = (rate: number) => {
+    setLocalStorageItem('tiktokPlaybackRate', rate, String)
     if (this.audio) {
       this.audio.playbackRate = rate
-      setLocalStorageItem('tiktokPlaybackRate', rate, String)
     }
   }
 
@@ -365,20 +385,14 @@ export class TikTokPlayer {
       this.abortController.abort()
       this.abortController = null
     }
-    if (this.prefetchAbortController) {
-      this.prefetchAbortController.abort()
-      this.prefetchAbortController = null
-    }
 
-    if (this.audio) {
-      this.audio.pause()
-      this.audio.currentTime = 0
-    }
+    this.cleanupAudioSource()
     this.cleanupBlobUrl()
     this.queue = []
+    this.bufferQueue = []
+    this.isPrefetching = false
     this.state = 'stopped'
-    this.progress = 0
-    this.currentTime = 0
+    this.currentChunkIndex = 0
   }
 }
 
