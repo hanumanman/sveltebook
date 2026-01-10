@@ -1,7 +1,7 @@
 <script lang="ts">
   import TikTokPlayer from '$lib/services/tiktokPlayer.svelte'
 
-  const player = $derived(TikTokPlayer.getInstance())
+  const player = TikTokPlayer.getInstance()
   const playbackStatus = $derived(player.playbackState)
 
   let containerWidth = $state(0)

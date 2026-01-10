@@ -10,7 +10,7 @@
   import type { PageProps } from './$types'
   import ChapterListDialog from './ChapterListDialog.svelte'
   import PageSettingsDialog from './PageSettingsDialog.svelte'
-  import { pageSettingsStore, themes } from './pageSettingsStore'
+  import { pageSettings, themes } from './pageSettings.svelte'
 
   let { data }: PageProps = $props()
   const { chapter_content, chapter_name, chapter_number, novel_id } = $derived(data.chapter)
@@ -80,7 +80,7 @@
 
   // Prefetch chapters metadata once
   $effect(() => {
-    if ($pageSettingsStore.infiniteReading && chaptersMetadata.length === 0) {
+    if (pageSettings.infiniteReading && chaptersMetadata.length === 0) {
       fetch(`/api/novel/${novel_id}/chapters`)
         .then((res) => res.json())
         .then((chapters) => {
@@ -135,7 +135,7 @@
 
   // Infinite scroll handler
   async function handleScroll() {
-    if (!$pageSettingsStore.infiniteReading) return
+    if (!pageSettings.infiniteReading) return
     if (isLoadingNext) return
     if (currentMaxChapter >= data.chapter_count) return
 
@@ -157,12 +157,12 @@
     }
   }
 
-  // Add scroll listener
+  // Add scroll listener when infinite reading is enabled
   $effect(() => {
-    if ($pageSettingsStore.infiniteReading) {
-      window.addEventListener('scroll', handleScroll)
-      return () => window.removeEventListener('scroll', handleScroll)
-    }
+    if (!pageSettings.infiniteReading) return
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   })
 </script>
 
@@ -181,8 +181,8 @@
 
 <div
   class="mx-auto flex w-full max-w-lg flex-col justify-between p-2 sm:p-4"
-  style="background-color: {themes[$pageSettingsStore.theme].background}; color: {themes[
-    $pageSettingsStore.theme
+  style="background-color: {themes[pageSettings.theme].background}; color: {themes[
+    pageSettings.theme
   ].color};"
 >
   <!-- Back to Novel Link -->
@@ -254,12 +254,12 @@
   <AudioPlayer
     text={chapter_content}
     nextPageUrl={hasNextChapter ? `/${novel_id}/${nextChapter}` : undefined}
-    themeName={$pageSettingsStore.theme}
+    themeName={pageSettings.theme}
     {themes}
   />
 
   <!-- Chapter Content -->
-  {#if $pageSettingsStore.infiniteReading && loadedChapters.length > 0}
+  {#if pageSettings.infiniteReading && loadedChapters.length > 0}
     <!-- Render all loaded chapters -->
     {#each loadedChapters as chap, idx (chap.number)}
       {#if idx > 0}
@@ -273,7 +273,7 @@
       {/if}
 
       <article
-        style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+        style="font-size: {pageSettings.fontSize}px; line-height: {pageSettings.lineHeight};"
         class="prose prose-lg dark:prose-invert max-w-none pb-4"
       >
         {#each plainContentToParagraphs(chap.content) as paragraph, i (i)}
@@ -291,7 +291,7 @@
   {:else}
     <!-- Single chapter mode (default behavior) -->
     <article
-      style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};"
+      style="font-size: {pageSettings.fontSize}px; line-height: {pageSettings.lineHeight};"
       class="prose prose-lg dark:prose-invert max-w-none pb-4"
     >
       {#each paragraphs as paragraph, i (i)}
@@ -307,7 +307,7 @@
   {/if}
 
   <!-- Bottom Chapter Navigation (hidden in infinite reading mode) -->
-  {#if !$pageSettingsStore.infiniteReading}
+  {#if !pageSettings.infiniteReading}
     <div class="flex flex-col gap-2 border-t border-gray-200 pt-3 sm:pt-4 dark:border-gray-700">
       {#if hasNextChapter}
         <LinkButton

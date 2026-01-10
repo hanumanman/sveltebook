@@ -7,7 +7,7 @@
   }
 
   let { compact = false }: Props = $props()
-  const player = $derived(TikTokPlayer.getInstance())
+  const player = TikTokPlayer.getInstance()
 </script>
 
 <button

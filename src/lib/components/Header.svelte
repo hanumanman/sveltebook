@@ -1,10 +1,16 @@
 <script lang="ts">
   import { enhance } from '$app/forms'
+  import type { SessionValidationResult } from '$lib/server/auth/auth'
   import { Book, User } from 'lucide-svelte'
 
   import Button from './Button.svelte'
 
-  const { session, user } = $props()
+  interface Props {
+    session: SessionValidationResult['session']
+    user: SessionValidationResult['user']
+  }
+
+  let { session, user }: Props = $props()
 </script>
 
 <header id="blackbook-header" class="bg-pennBlue-900 flex h-[10dvh] flex-col justify-center">

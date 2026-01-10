@@ -11,7 +11,7 @@
   }
 
   let { compact = false, text, nextPageUrl }: Props = $props()
-  const player = $derived(TikTokPlayer.getInstance())
+  const player = TikTokPlayer.getInstance()
 
   function handleClick() {
     switch (player.playbackState) {

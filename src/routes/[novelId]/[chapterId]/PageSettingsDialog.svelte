@@ -6,7 +6,7 @@
   import { getLocalStorageItem, setLocalStorageItem } from '$lib/utils/localStorage'
   import { fade, fly } from 'svelte/transition'
 
-  import { pageSettingsStore, themes } from './pageSettingsStore'
+  import { pageSettings, themes } from './pageSettings.svelte'
 
   interface Props {
     open: boolean
@@ -88,12 +88,12 @@
           <input
             type="range"
             class="grow h-2 cursor-pointer"
-            bind:value={$pageSettingsStore.fontSize}
+            bind:value={pageSettings.fontSize}
             min="12"
             max="24"
             step="0.1"
           />
-          <p class="min-w-[60px] text-right">{$pageSettingsStore.fontSize.toFixed(1)} px</p>
+          <p class="min-w-[60px] text-right">{pageSettings.fontSize.toFixed(1)} px</p>
         </div>
       </div>
 
@@ -103,12 +103,12 @@
           <input
             type="range"
             class="grow h-2 cursor-pointer"
-            bind:value={$pageSettingsStore.lineHeight}
+            bind:value={pageSettings.lineHeight}
             min="1.0"
             max="3.0"
             step="0.1"
           />
-          <p class="min-w-[60px] text-right">{$pageSettingsStore.lineHeight.toFixed(1)}</p>
+          <p class="min-w-[60px] text-right">{pageSettings.lineHeight.toFixed(1)}</p>
         </div>
       </div>
 
@@ -118,12 +118,10 @@
           {#each themesArray as { key, value }, i (i)}
             <button
               class="aspect-square rounded-lg border-2 transition-all text-2xl font-bold
-                     {$pageSettingsStore.theme === key
-                ? 'border-white scale-105'
-                : 'border-transparent'}"
+                     {pageSettings.theme === key ? 'border-white scale-105' : 'border-transparent'}"
               style="color:{value.color}; background-color:{value.background};"
               onclick={() => {
-                $pageSettingsStore.theme = key as keyof typeof themes
+                pageSettings.theme = key as keyof typeof themes
               }}
             >
               A
@@ -133,9 +131,9 @@
       </div>
 
       <div
-        style="font-size: {$pageSettingsStore.fontSize}px; line-height: {$pageSettingsStore.lineHeight};background-color: {themes[
-          $pageSettingsStore.theme
-        ].background}; color: {themes[$pageSettingsStore.theme].color};"
+        style="font-size: {pageSettings.fontSize}px; line-height: {pageSettings.lineHeight};background-color: {themes[
+          pageSettings.theme
+        ].background}; color: {themes[pageSettings.theme].color};"
         class="p-4 rounded-lg border border-gray-600"
       >
         <p class="line-clamp-3">
@@ -155,7 +153,7 @@
         >
           <input
             type="checkbox"
-            bind:checked={$pageSettingsStore.infiniteReading}
+            bind:checked={pageSettings.infiniteReading}
             class="w-6 h-6 rounded border-gray-300 cursor-pointer accent-blue-500"
           />
           <span class="text-base">Enable infinite reading</span>
@@ -201,17 +199,7 @@
       </div>
 
       <div class="flex gap-3 pt-2 sticky bottom-0 bg-pennBlue-900 pb-2 -mb-2">
-        <Button
-          class="flex-1 py-3 text-base"
-          onclick={() => {
-            $pageSettingsStore = {
-              fontSize: 16,
-              lineHeight: 1.5,
-              theme: 'default',
-              infiniteReading: false
-            }
-          }}>Reset</Button
-        >
+        <Button class="flex-1 py-3 text-base" onclick={() => pageSettings.reset()}>Reset</Button>
 
         <Button class="flex-1 py-3 text-base" onclick={toggleDialogFn}>Save & Close</Button>
       </div>

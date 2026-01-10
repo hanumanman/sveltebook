@@ -8,7 +8,8 @@
   import type { LayoutProps } from './$types'
 
   let { children, data }: LayoutProps = $props()
-  const { session, user } = $derived(data)
+  const session = $derived(data.session ?? null)
+  const user = $derived(data.user ?? null)
 
   let isNavigating = $derived(!!navigating.complete)
 </script>

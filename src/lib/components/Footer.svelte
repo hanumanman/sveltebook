@@ -1,6 +1,3 @@
-<script>
-</script>
-
 <footer
   id="blackbook-footer"
   class="mt-auto flex h-[20dvh] flex-col justify-center border-t border-gray-800 bg-gray-900 py-8"

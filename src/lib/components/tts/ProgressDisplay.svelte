@@ -8,7 +8,7 @@
   }
 
   let { compact = false, class: className }: Props = $props()
-  const player = $derived(TikTokPlayer.getInstance())
+  const player = TikTokPlayer.getInstance()
 
   const progressPercentage = $derived(() => {
     const currentChunk = player.getCurrentChunkNumber
