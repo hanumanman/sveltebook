@@ -1,50 +1,189 @@
-## AGENTS.md
+# AGENTS.md
 
-This file provides guidelines for AI agents working on this codebase.
+Guidelines for AI coding agents working in this codebase.
 
-### Build, Lint, and Test
+---
 
-- **Build:** `bun run build` (includes formatting)
-- **Lint:** `bun run lint` (prettier check + eslint)
-- **Format:** `bun run format` (prettier write)
-- **Type Check:** `bun run check` (svelte-kit sync + svelte-check)
-- **Test:** No dedicated test script exists. Use `bun run check` for validation. No single-test command available.
+## Quick Reference
 
-### Code Style
+### Package Manager
 
-- **Framework:** SvelteKit with TypeScript
-- **Formatting:** Prettier with config: 100 printWidth, single quotes, no semicolons, no trailing commas, tabs=false
-- **Imports:** Sorted with @trivago/prettier-plugin-sort-imports (custom order: @core, @server, @ui, then relative)
-- **Naming:** SvelteKit conventions; camelCase for vars/functions; PascalCase for components
-- **Types:** Strongly typed TypeScript required; use interfaces for complex objects
-- **Error Handling:** try/catch for async ops and DB queries; throw descriptive errors
-- **Database:** Drizzle ORM only; schema in src/lib/server/db/schema.ts
-- **Authentication:** Lucia auth; config in src/lib/server/auth/auth.ts
-- **Styling:** Tailwind CSS; use clsx/tailwind-merge for conditional classes
-- **Linting:** ESLint with TS/recommended; ignore unused vars starting with \_
+**Bun** is the package manager and runtime. Use `bun` for all commands.
 
-## MCP
+### Core Commands
 
-You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
+| Command          | Description                                |
+| ---------------- | ------------------------------------------ |
+| `bun run dev`    | Start development server                   |
+| `bun run build`  | Build for production (includes formatting) |
+| `bun run format` | Format code with Prettier                  |
+| `bun run lint`   | Run Prettier check + ESLint                |
+| `bun run check`  | Type-check with svelte-check               |
 
-## Available MCP Tools:
+### Database Commands
 
-### 1. list-sections
+| Command              | Description                     |
+| -------------------- | ------------------------------- |
+| `bun run db:push`    | Push schema changes to database |
+| `bun run db:migrate` | Run database migrations         |
 
-Use this FIRST to discover all available documentation sections. Returns a structured list with titles, use_cases, and paths.
-When asked about Svelte or SvelteKit topics, ALWAYS use this tool at the start of the chat to find relevant sections.
+### Testing
 
-### 2. get-documentation
+⚠️ **No test framework configured.** Use `bun run check` for type validation.
+**No single-test command available.**
 
-Retrieves full documentation content for specific sections. Accepts single or multiple sections.
-After calling the list-sections tool, you MUST analyze the returned documentation sections (especially the use_cases field) and then use the get-documentation tool to fetch ALL documentation sections that are relevant for the user's task.
+---
 
-### 3. svelte-autofixer
+## Project Architecture
 
-Analyzes Svelte code and returns issues and suggestions.
-You MUST use this tool whenever writing Svelte code before sending it to the user. Keep calling it until no issues or suggestions are returned.
+### Framework & Tech Stack
 
-### 4. playground-link
+- **Framework:** SvelteKit 2.x with Svelte 5 (runes)
+- **Runtime:** Bun
+- **Language:** TypeScript (strict mode)
+- **Database:** Turso (libSQL) with Drizzle ORM
+- **Authentication:** Custom Oslo-based auth (sha256 sessions)
+- **Styling:** Tailwind CSS v4
+- **Deployment:** Vercel (adapter-auto configured)
 
-Generates a Svelte Playground link with the provided code.
-After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+### Directory Structure
+
+```
+src/
+├── lib/
+│   ├── components/       # Svelte components
+│   ├── server/           # Server-only code
+│   │   ├── auth/         # Authentication logic
+│   │   ├── db/           # Database schema & queries
+│   │   └── config/       # Server configuration
+│   ├── services/         # Business logic
+│   └── utils/            # Shared utilities
+└── routes/               # SvelteKit file-based routing
+    ├── api/              # API endpoints (+server.ts)
+    └── [novelId]/        # Dynamic routes
+```
+
+---
+
+#### Type Imports
+
+Use `import type` for type-only imports:
+
+```typescript
+import type { PageServerLoad } from './$types'
+import type { RequestHandler } from './$types'
+```
+
+### Naming Conventions
+
+| Type             | Convention                                   | Example                                    |
+| ---------------- | -------------------------------------------- | ------------------------------------------ |
+| Variables        | camelCase                                    | `novelId`, `chapterContent`                |
+| Functions        | camelCase                                    | `getAllNovels()`, `validateSessionToken()` |
+| Components       | PascalCase                                   | `Button.svelte`, `Header.svelte`           |
+| Types/Interfaces | PascalCase with prefix                       | `TSelectNovel`, `TInsertChapter`           |
+| Constants        | UPPER_SNAKE_CASE                             | `DAY_IN_MS`, `TIKTOK_CONFIG`               |
+| Files            | kebab-case (routes), PascalCase (components) | `+page.server.ts`, `Button.svelte`         |
+
+### Error Handling
+
+#### API Routes (`+server.ts`)
+
+Use try/catch with descriptive JSON errors:
+
+```typescript
+export const GET: RequestHandler = async ({ params }) => {
+  const novelId = parseInt(params.novelId)
+  if (isNaN(novelId)) {
+    return json({ error: 'Invalid novel ID' }, { status: 400 })
+  }
+
+  try {
+    const chapters = await getChaptersList(novelId)
+    return json(chapters)
+  } catch (e) {
+    console.error(e)
+    return json({ error: 'Failed to fetch chapters' }, { status: 500 })
+  }
+}
+```
+
+#### Server Load Functions
+
+Use SvelteKit's `error()` helper:
+
+```typescript
+import { error } from '@sveltejs/kit'
+
+export const load: PageServerLoad = async ({ params }) => {
+  const novel = await getNovelById(parseInt(params.novelId))
+  if (!novel) {
+    error(404, 'Novel not found')
+  }
+  return { novel }
+}
+```
+
+---
+
+## Database (Drizzle ORM)
+
+### Schema Location
+
+`src/lib/server/db/schema.ts`
+
+### Type Inference
+
+Always use Drizzle's type inference:
+
+```typescript
+export type TInsertChapter = typeof chaptersTable.$inferInsert
+export type TSelectChapter = typeof chaptersTable.$inferSelect
+```
+
+### Query Patterns
+
+- Use `src/lib/server/db/queries/select.ts` for SELECT queries
+- Use `src/lib/server/db/queries/inserts.ts` for INSERT/UPDATE queries
+- Always use parameterized queries (Drizzle handles this)
+
+---
+
+## Authentication
+
+### Custom Auth System
+
+- Located in `src/lib/server/auth/auth.ts`
+- Uses Oslo's crypto primitives (sha256 hashing)
+- Session-based with 30-day expiration
+- Cookie name: `auth-session`
+
+### Key Functions
+
+- `generateSessionToken()` - Create new session token
+- `createSession(token, user_id)` - Store session in DB
+- `validateSessionToken(token)` - Validate and return user
+
+---
+
+## Svelte 5 Specifics
+
+### Runes
+
+This project uses **Svelte 5 runes** (modern reactivity):
+
+- `$state()` for reactive state
+- `$derived()` for computed values
+- `$effect()` for side effects
+- `$props()` for component props
+
+## MCP Tools (Svelte Documentation)
+
+When working with Svelte/SvelteKit, use these MCP tools:
+
+1. **`list-sections`** - Discover available docs (use FIRST)
+2. **`get-documentation`** - Fetch specific sections (analyze use_cases)
+3. **`svelte-autofixer`** - Validate Svelte code (call until clean)
+4. **`playground-link`** - Generate playground link (ask user first)
+
+**Workflow:** list-sections → analyze use_cases → get-documentation → svelte-autofixer
