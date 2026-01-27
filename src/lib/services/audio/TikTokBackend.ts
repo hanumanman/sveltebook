@@ -9,15 +9,11 @@ const TIKTOK_PLAYER_CONSTANTS = {
 
 export class TikTokBackend implements AudioPlayer {
   private audio: HTMLAudioElement | null = null
+  private audioContext: AudioContext | null = null
+
   async play(text: string): Promise<void> {
-    const audioContext = new AudioContext()
     const audioBlob = await this.fetchAudio(text, 'female', new AbortController().signal)
-    const arrayBuffer = await audioBlob.arrayBuffer()
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
-    const source = audioContext.createBufferSource()
-    source.buffer = audioBuffer
-    source.connect(audioContext.destination)
-    source.start()
+    await this.playAudioBlob(audioBlob)
   }
 
   stop(): void {
@@ -30,6 +26,16 @@ export class TikTokBackend implements AudioPlayer {
 
   resume(): void {
     console.log('Resuming audio')
+  }
+
+  private async playAudioBlob(audioBlob: Blob): Promise<void> {
+    const audioContext = new AudioContext()
+    const arrayBuffer = await audioBlob.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    const source = audioContext.createBufferSource()
+    source.buffer = audioBuffer
+    source.connect(audioContext.destination)
+    source.start()
   }
 
   private async fetchAudio(

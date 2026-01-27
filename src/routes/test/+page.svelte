@@ -5,7 +5,7 @@
 
   const audio = audioState
   const controller = $derived(
-    audio.currentBackend() === 'synthesis' ? new NativeBackend() : new TikTokBackend()
+    audio.getCurrentBackend() === 'synthesis' ? new NativeBackend() : new TikTokBackend()
   )
 
   const testText = 'Hello dog'
@@ -16,20 +16,20 @@
         controller.pause()
         break
       case 'paused':
-        controller.play()
+        controller.play(testText)
         break
       case 'stopped':
-        controller.play()
+        controller.play(testText)
     }
   }
 
   function switchBackend(): void {
-    audio.setBackend(audio.currentBackend() === 'synthesis' ? 'tiktok' : 'synthesis')
+    audio.setBackend(audio.getCurrentBackend() === 'synthesis' ? 'tiktok' : 'synthesis')
   }
 </script>
 
 <div>{audio.getVoice()}</div>
-<div>{audio.currentBackend()}</div>
+<div>{audio.getCurrentBackend()}</div>
 <button
   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
   onclick={handleAudioPlay}>Test button</button
@@ -46,7 +46,7 @@
   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
   onclick={switchBackend}
 >
-  Switch backend: {audio.currentBackend()}
+  Switch backend: {audio.getCurrentBackend()}
 </button>
 
 <button

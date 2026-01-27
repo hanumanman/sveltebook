@@ -9,7 +9,7 @@ export const audioState = {
   setBackend: (backend: AudioBackend): void => {
     currentBackend = backend
   },
-  currentBackend: () => currentBackend,
+  getCurrentBackend: () => currentBackend,
   getVolume: () => volume,
   getVoice: () => voice,
   getState: () => state
